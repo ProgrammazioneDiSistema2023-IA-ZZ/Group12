@@ -2,4 +2,4 @@
 
 pub mod neuron;
 pub mod layer;
-mod snn_builder;
+pub mod snn_builder;
