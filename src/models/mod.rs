@@ -1,1 +1,1 @@
-pub mod Neuron;
+pub mod lifneuron;

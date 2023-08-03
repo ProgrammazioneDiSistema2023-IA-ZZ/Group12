@@ -1,4 +1,4 @@
-use crate::models::Neuron::LIFNeuron;
+use crate::models::lifneuron::LIFNeuron;
 
 mod models;
 mod snn;
