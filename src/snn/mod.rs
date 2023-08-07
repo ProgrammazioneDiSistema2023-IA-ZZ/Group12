@@ -1,5 +1,5 @@
 pub mod neuron; /* pubblico */
-    mod snn_builder; /*privato */
+pub mod snn_builder; /*privato */
     mod layer;
     mod snn;
 
