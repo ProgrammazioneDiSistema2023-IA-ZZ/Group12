@@ -1,3 +1,25 @@
+use std::slice::IterMut;
+use std::sync::{Arc, Mutex};
+use crate::snn::layer::Layer;
+use crate::snn::neuron::Neuron;
+
+pub struct SNN<N: Neuron+Clone+'static, const NET_INPUT_SIZE: usize, const NET_OUTPUT_SIZE: usize> {
+    layers: Vec<Arc<Mutex<Layer<N>>>>,
+}
+
+impl<N: Neuron+Clone+'static, const NET_INPUT_SIZE: usize, const NET_OUTPUT_SIZE: usize> SNN<N, NET_INPUT_SIZE, NET_OUTPUT_SIZE> {
+    
+}
+
+impl<'a, N: Neuron+Clone+'static, const NET_INPUT_SIZE: usize, const NET_OUTPUT_SIZE: usize> IntoIterator for &'a mut SNN<N, NET_INPUT_SIZE , NET_OUTPUT_SIZE > {
+
+    type Item = &'a mut Arc<Mutex<Layer<N>>>;
+    type IntoIter = IterMut<'a, Arc<Mutex<Layer<N>>>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.layers.iter_mut()
+    }
+=======
 use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
 use crate::snn::Evento;
