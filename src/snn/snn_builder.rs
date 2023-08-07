@@ -6,19 +6,13 @@ pub struct SnnParams<N: Neuron+ Clone+'static>{
     extra_weights: Vec<Vec<Vec<f64>>>,
     intra_weights: Vec<Vec<Vec<f64>>>,
 }
-<<<<<<< HEAD
+
 pub struct SnnBuilder<N: Neuron+ Clone+'static>{
     params: SnnParams<N>
 }
 
-impl <N: Neuron+ Clone+'static> SnnBuilder<N> {
-=======
-pub struct SnnBuilder<N: Neuron+ Clone, const INPUT_DIM: usize>{
-    params: SnnParams<N>
-}
+impl <N: Neuron+ Clone> SnnBuilder<N> {
 
-impl <N: Neuron+ Clone, const INPUT_DIM: usize> SnnBuilder<N, INPUT_DIM> {
->>>>>>> c94f0a9dad7b9b2fc9885293d9c491b486f924fc
     pub fn new()->Self{
         Self {
             params: SnnParams {
@@ -32,7 +26,7 @@ impl <N: Neuron+ Clone, const INPUT_DIM: usize> SnnBuilder<N, INPUT_DIM> {
         self.params.clone()
     }
 
-    pub fn add_layer(&mut self) -> &mut SnnBuilder<N, INPUT_DIM> {
+    pub fn add_layer(&mut self) -> &mut SnnBuilder<N> {
         self
     }
     pub fn add_weight<const NUM_NEURONS: usize>(&mut self, weights:[[f64; INPUT_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N, { INPUT_DIM }> {
