@@ -23,11 +23,13 @@ impl<N: Neuron+ Clone> Layer<N> {
     }
 
     pub fn new(neurons: Vec<N>, weights: Vec<Vec<f64>>, intra_weights: Vec<Vec<f64>>)->Self{
+        let len= neurons.len();
         Self{
+
             neurons,
             weights,
             intra_weights,
-            prev_output: vec![0; neurons.len()]
+            prev_output: vec![0; len]
         }
     }
 
