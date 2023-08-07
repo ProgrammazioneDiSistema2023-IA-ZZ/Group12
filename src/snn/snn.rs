@@ -2,26 +2,6 @@ use std::slice::IterMut;
 use std::sync::{Arc, Mutex};
 use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
-
-pub struct SNN<N: Neuron+Clone+'static, const NET_INPUT_SIZE: usize, const NET_OUTPUT_SIZE: usize> {
-    layers: Vec<Arc<Mutex<Layer<N>>>>,
-}
-
-impl<N: Neuron+Clone+'static, const NET_INPUT_SIZE: usize, const NET_OUTPUT_SIZE: usize> SNN<N, NET_INPUT_SIZE, NET_OUTPUT_SIZE> {
-    
-}
-
-impl<'a, N: Neuron+Clone+'static, const NET_INPUT_SIZE: usize, const NET_OUTPUT_SIZE: usize> IntoIterator for &'a mut SNN<N, NET_INPUT_SIZE , NET_OUTPUT_SIZE > {
-
-    type Item = &'a mut Arc<Mutex<Layer<N>>>;
-    type IntoIter = IterMut<'a, Arc<Mutex<Layer<N>>>>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.layers.iter_mut()
-    }
-=======
-use crate::snn::layer::Layer;
-use crate::snn::neuron::Neuron;
 use crate::snn::Evento;
 
 /**
@@ -31,12 +11,12 @@ use crate::snn::Evento;
     - SNN_OUTPUT_DIM: dimensione dell'output della rete, i.e. numero di neuroni nell'ultimo layer
 */
 pub struct SNN<N: Neuron + Clone, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>{
-    layers: Vec<Layer<N>>
+    layers: Vec<Arc<Mutex<Layer<N>>>>
 }
 
 impl <N:Neuron + Clone, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
     SNN<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM> {
-    pub fn new(layers: Vec<Layer<N>>) -> Self {
+    pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>) -> Self {
         Self {
             layers
         }
@@ -114,4 +94,13 @@ impl <N:Neuron + Clone, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
         raw_matrix
     }
 
+}
+
+impl<'a, N: Neuron+Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM : usize > IntoIterator for &'a mut SNN<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>{
+    type Item = &'a mut Arc<Mutex<Layer<N>>>;
+    type IntoIter = IterMut<'a, Arc<Mutex<Layer<N>>>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.layers.iter_mut()
+    }
 }
