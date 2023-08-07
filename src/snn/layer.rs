@@ -1,6 +1,6 @@
 use crate::snn::neuron::Neuron;
 
-pub struct Layer<N: Neuron+ Clone>{
+pub struct Layer<N: Neuron+Clone+'static>{
     neurons: Vec<N>,
     weights: Vec<Vec<f64>>,
     intra_weights: Vec<Vec<f64>>,
@@ -8,7 +8,7 @@ pub struct Layer<N: Neuron+ Clone>{
 }
 
 
-impl<N: Neuron+ Clone> Layer<N> {
+impl<N: Neuron+ Clone+'static> Layer<N> {
     pub fn neurons(&self) -> &Vec<N> {
         &self.neurons
     }
@@ -43,7 +43,7 @@ impl<N: Neuron+ Clone> Layer<N> {
     }
 }
 
-impl <N: Neuron+Clone> Clone for Layer<N>{
+impl <N: Neuron+Clone+'static> Clone for Layer<N>{
     fn clone(&self) -> Self {
         Self{
             neurons: self.neurons.clone(),
