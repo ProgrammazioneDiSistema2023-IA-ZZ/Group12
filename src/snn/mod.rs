@@ -1,34 +1,21 @@
-use crate::snn::neuron::Neuron;
+    mod snn_builder; /* privato */
+pub mod neuron; /* pubblico */
+    mod layer;
 
-pub mod neuron;
-pub mod layer;
-mod snn_builder;
 
-#[derive(Debug, Clone)]
-pub struct SnnParams<N: Neuron+ Clone>{
-    neurons: Vec<Vec<N>>,
-    extra_weights: Vec<Vec<Vec<f64>>>,
-    intra_weights: Vec<Vec<Vec<f64>>>,
+/**
+    Oggetto rappresentante l'output generato da un single layer
+*/
+
+pub struct Evento {
+
+    ts: u64, /* istante di tempo in cui l'evento viene generato */
+    spikes: Vec<u8>, /* vettore degli output generati da quell'evento */
+    
 }
-pub struct SnnBuilder<N: Neuron+ Clone>{
-    params: SnnParams<N>
-}
 
-impl <N: Neuron+ Clone> SnnBuilder<N> {
-    pub fn new()->Self{
-        Self {
-            params: SnnParams {
-                neurons: vec![],
-                extra_weights: vec![],
-                intra_weights: vec![],
-            }
-        }
-    }
-    pub fn get_params(&self) -> SnnParams<N> {
-        self.params.clone()
-    }
-
-    pub fn add_weights(){
-
+impl Evento {
+    pub fn new(ts: u64, spikes: Vec<u8>) -> Self {
+        Self { ts, spikes }
     }
 }
