@@ -1,6 +1,7 @@
 pub mod neuron; /* pubblico */
     mod snn_builder; /*privato */
     mod layer;
+    mod snn;
 
 /**
     Oggetto che rappresenta  il valore di output generato dalle SNN
