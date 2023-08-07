@@ -1,16 +1,24 @@
 use crate::snn::neuron::Neuron;
 
 #[derive(Debug, Clone)]
-pub struct SnnParams<N: Neuron+ Clone>{
+pub struct SnnParams<N: Neuron+ Clone+'static>{
     neurons: Vec<Vec<N>>,
     extra_weights: Vec<Vec<Vec<f64>>>,
     intra_weights: Vec<Vec<Vec<f64>>>,
 }
+<<<<<<< HEAD
+pub struct SnnBuilder<N: Neuron+ Clone+'static>{
+    params: SnnParams<N>
+}
+
+impl <N: Neuron+ Clone+'static> SnnBuilder<N> {
+=======
 pub struct SnnBuilder<N: Neuron+ Clone, const INPUT_DIM: usize>{
     params: SnnParams<N>
 }
 
 impl <N: Neuron+ Clone, const INPUT_DIM: usize> SnnBuilder<N, INPUT_DIM> {
+>>>>>>> c94f0a9dad7b9b2fc9885293d9c491b486f924fc
     pub fn new()->Self{
         Self {
             params: SnnParams {
