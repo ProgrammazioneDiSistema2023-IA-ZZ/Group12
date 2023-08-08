@@ -27,7 +27,6 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
     pub fn new(neurons: Vec<N>, weights: Vec<Vec<f64>>, intra_weights: Vec<Vec<f64>>)->Self{
         let len= neurons.len();
         Self{
-
             neurons,
             weights,
             intra_weights,
@@ -36,7 +35,42 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
     }
 
     pub fn process(&mut self, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
-        todo!();
+
+        /**Inizializiamo il layer **/
+        self.init_layer();
+
+        /** Prendiamo l'output del layer precedente **/
+        if let Ok(input_spike) = layer_input_rc.recv() {
+            let instant = input_spike.ts;
+            let mut output_spikes = Vec::<u8>::with_capacity(self.neurons.len());
+            let mut at_least_one_spike = false;
+
+            /** Calcoliamo i pesi sia intra-layer che extra-layer, e calcoliamo
+                l'output
+            **/
+
+            for (index, neuron) in self.neurons.iter_mut().enumerate(){
+                let mut intra_weights_sum = 0f64;
+                let mut extra_weights_sum = 0f64;
+
+                todo!();
+
+                /** Calcolo il potenziale di membrana e l'output del neurone **/
+                let neuron_spike = neuron.update_v_mem(instant,intra_weights_sum, extra_weights_sum);
+                output_spikes.push(neuron_spike);
+
+
+            }
+
+            /** Creiamo l'output del prossimo layer **/
+            let output_spike = Evento::new(instant, output_spikes);
+
+            /** Mandiamo l'output al prossimo layer **/
+            layer_output_tx.send(output_spike)
+                .expect(&format!(ERROR: sending spike event at t={}, instant));
+        }
+
+
     }
 
     pub fn init_layer(&mut self){
