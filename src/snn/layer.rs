@@ -1,3 +1,5 @@
+use std::sync::mpsc::{Receiver, Sender};
+use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
 
 pub struct Layer<N: Neuron+Clone+'static>{
@@ -33,7 +35,7 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
         }
     }
 
-    pub fn process(){
+    pub fn process(&mut self, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
         todo!();
     }
 
