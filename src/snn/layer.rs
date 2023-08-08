@@ -9,7 +9,6 @@ pub struct Layer<N: Neuron+Clone+'static>{
     prev_output: Vec<u8>,
 }
 
-
 impl<N: Neuron+ Clone+'static> Layer<N> {
     pub fn neurons(&self) -> &Vec<N> {
         &self.neurons
@@ -67,7 +66,7 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
 
             /** Mandiamo l'output al prossimo layer **/
             layer_output_tx.send(output_spike)
-                .expect(&format!(ERROR: sending spike event at t={}, instant));
+                .expect(&format!("ERROR: sending spike event at t={}", instant));
         }
 
 

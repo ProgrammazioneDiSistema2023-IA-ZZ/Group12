@@ -39,7 +39,7 @@ impl Processor {
                 /** Prendiamo il layer in considerazione **/
                 let mut layer = layer_ref.lock().unwrap();
                 /** Eseguiamo il compito del layer **/
-                layer.process(layer_rc, layer_tx)
+                layer.process(layer_rc, layer_tx);
             });
 
             threads.push(thread); /* Inseriamo il thread all'interno del vettore con tutti i thread creati */
