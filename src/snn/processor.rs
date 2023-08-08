@@ -8,6 +8,7 @@ use crate::snn::neuron::Neuron;
 
 #[derive(Debug)]
 pub struct Processor { }
+
 impl Processor {
     pub fn process_events<'a, N: Neuron+Clone+'static, S: IntoIterator<Item=&'a mut Arc<Mutex<Layer<N>>>>>(self, snn: S, spikes: Vec<Evento>) -> Vec<Evento>{
         /** Creiamo la pool di tutti i thread **/
@@ -38,21 +39,26 @@ impl Processor {
         let net_output_rc = layer_rc;
 
         for evento in spikes {
-            if evento.spikes.iter().all(|spike|{&spike == 0u8}){
+            if evento.spikes.iter().all(|spike|{*spike == 0u8}){
                 continue;
             }
 
 
             let instant = evento.ts;
 
+            /** Mandiamo l'input agli altri thread **/
             net_input_tx.send(evento)
-                .expect(&format!("ERROR: sending spikes event at t={}", instant));
+                .expect(&format!("ERROR: sending spikes event at t={}", instant)); /** generiamo un messaggio di errore particolare in caso di errore **/
         }
 
+        drop(net_input_tx); /** droppiamo net_input_tx, così da far terminare tutti i thread **/
+
+        /** Vettore di eventi per l'output di uscita **/
         let mut spikes_output = Vec::<Evento>::new();
 
+        /** Aspettiamo che arrivi l'ultimo output per inserirlo nel vettore di uscita **/
         while let Ok(spike_event) = net_output_rc.recv() {
-            
+            spikes_output.push(spike_event);
         }
 
         /** Aspettiamo che riceva tutti i thread **/
