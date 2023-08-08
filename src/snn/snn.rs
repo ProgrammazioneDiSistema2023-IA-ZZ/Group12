@@ -23,7 +23,7 @@ impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM
         }
     }
 
-    pub fn layers(&self) -> &Vec<Layer<N>> {
+    pub fn layers(&self) -> &Vec<Arc<Mutex<Layer<N>>>> {
         &self.layers
     }
 

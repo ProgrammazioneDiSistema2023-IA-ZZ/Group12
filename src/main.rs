@@ -19,6 +19,9 @@ fn main(){
         [-0.10, 0.0]
     ]);
 
+    let first_params = snn.get_params();
+    println!("{:?}", first_params);
+
     println!("Params Created!")
 
 }

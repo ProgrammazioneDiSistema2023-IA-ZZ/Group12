@@ -29,13 +29,14 @@ impl Processor {
         /** Creiamo il TX di input e il receiver per ciascun layer **/
         for layer_ref in snn {
 
+            let layer_ref = layer_ref.clone();
             /** Creiamo il canale condiviso per il prossimo layer **/
             /** layer_tx manderà l'output di questo layer al next_layer_rc, ovvero il receiver del prossimo layer **/
             /** Nel caso non ci fosse un prossimo layer, next_layer_rc sarà il receiver che prenderà l'output della rete **/
             let (layer_tx, next_layer_rc) = channel::<Evento>();
 
             /** Creiamo effettivamente il thread **/
-            let thread  = thread::spawn(move || {
+            let thread  = thread::spawn(move|| {
                 /** Prendiamo il layer in considerazione **/
                 let mut layer = layer_ref.lock().unwrap();
                 /** Eseguiamo il compito del layer **/
@@ -57,7 +58,8 @@ impl Processor {
 
             /** Mandiamo l'input al primo layer **/
             net_input_tx.send(evento)
-                .expect(&format!("ERROR: sending spikes event at t={}", instant)); /** generiamo un messaggio di errore particolare in caso di errore **/
+                .expect(&format!("ERROR: sending spikes event at t={}", instant));
+            // generiamo un messaggio di errore particolare in caso di errore **/
         }
 
         drop(net_input_tx); /** droppiamo net_input_tx, così da far terminare tutti i thread **/

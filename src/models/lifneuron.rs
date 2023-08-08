@@ -1,5 +1,5 @@
 use crate::snn::neuron::Neuron;
-
+#[derive(Debug)]
 pub struct LIFNeuron{
     v_th: f64,
     v_rest: f64,
