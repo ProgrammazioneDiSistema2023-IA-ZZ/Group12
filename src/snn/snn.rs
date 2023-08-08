@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
 use crate::snn::Evento;
+use crate::snn::processor::Processor;
 
 /**
     struttura rappresentante la rete neurale spiking
@@ -10,11 +11,11 @@ use crate::snn::Evento;
     - SNN_INPUT_DIM: dimensione dell'input della rete, i.e. numero di neuroni nel primo layer
     - SNN_OUTPUT_DIM: dimensione dell'output della rete, i.e. numero di neuroni nell'ultimo layer
 */
-pub struct SNN<N: Neuron + Clone, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>{
+pub struct SNN<N: Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>{
     layers: Vec<Arc<Mutex<Layer<N>>>>
 }
 
-impl <N:Neuron + Clone, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
+impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
     SNN<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM> {
     pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>) -> Self {
         Self {
@@ -39,9 +40,8 @@ impl <N:Neuron + Clone, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
         /* trasforma in Eventi */
         let input_events = SNN::<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>::to_events(input_spikes);
 
-        // let processor = Processor {};
-        // let output_events = processor.process_events(self, input_events);
-        let output_events=Vec::new();
+        let processor = Processor {};
+        let output_events = processor.process_events(self, input_events);
 
         /* decode output into array shape */
         let output_spikes:[[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION]
