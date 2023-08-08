@@ -10,18 +10,28 @@ use crate::snn::neuron::Neuron;
 pub struct Processor { }
 
 impl Processor {
+    /**
+        Spikes è il vettore degli input della rete che diamo in pasto alla rete per ottenere l'output.
+        - Questo metodo crea un thread per ciascun layer all'interno della rete
+        Ciascun thread processa l'input del layer precedente attraverso un canale condiviso (channel) e manderà
+        l'output calcolato al prossimo layer sempre attraverso un altro canale condiviso
+    **/
     pub fn process_events<'a, N: Neuron+Clone+'static, S: IntoIterator<Item=&'a mut Arc<Mutex<Layer<N>>>>>(self, snn: S, spikes: Vec<Evento>) -> Vec<Evento>{
         /** Creiamo la pool di tutti i thread **/
          let mut threads  = Vec::<JoinHandle<()>>::new();
 
         /** Creiamo il channel a cui dare il primo layer **/
+        /** Di questo channel ci servirà il layer_rc che sarà il receiver del primo layer, il net_input_tx serve solo
+            per mandare l'input della rete (spikes)
+        **/
         let (net_input_tx, mut layer_rc) = channel::<Evento>();
 
         /** Creiamo il TX di input e il receiver per ciascun layer **/
-
         for layer_ref in snn {
 
-            /** Creiamo il channel per il prossimo layer **/
+            /** Creiamo il canale condiviso per il prossimo layer **/
+            /** layer_tx manderà l'output di questo layer al next_layer_rc, ovvero il receiver del prossimo layer **/
+            /** Nel caso non ci fosse un prossimo layer, next_layer_rc sarà il receiver che prenderà l'output della rete **/
             let (layer_tx, next_layer_rc) = channel::<Evento>();
 
             /** Creiamo effettivamente il thread **/
@@ -43,10 +53,9 @@ impl Processor {
                 continue;
             }
 
-
             let instant = evento.ts;
 
-            /** Mandiamo l'input agli altri thread **/
+            /** Mandiamo l'input al primo layer **/
             net_input_tx.send(evento)
                 .expect(&format!("ERROR: sending spikes event at t={}", instant)); /** generiamo un messaggio di errore particolare in caso di errore **/
         }
