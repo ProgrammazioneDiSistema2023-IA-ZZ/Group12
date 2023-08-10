@@ -52,8 +52,10 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         let mut new_weights = <Vec<Vec<f64>>>::new();
 
         for n_weight in &intra_weights{
-            for n in n_weight{
-                //todo!()
+            for w in n_weight{
+                if w>&0f64{
+                    panic!("Pesi nello stesso layer devono essere negativi!");
+                }
             }
             new_weights.push(Vec::from(n_weight.as_slice()));
         }
