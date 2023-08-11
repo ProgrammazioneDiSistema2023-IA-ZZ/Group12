@@ -1,5 +1,8 @@
 use std::fmt::Debug;
+use std::sync::{Arc, Mutex};
+use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
+use crate::snn::snn::SNN;
 
 #[derive(Debug, Clone)]
 pub struct SnnParams<N: Neuron+ Clone+Debug+'static>{
@@ -7,7 +10,7 @@ pub struct SnnParams<N: Neuron+ Clone+Debug+'static>{
     extra_weights: Vec<Vec<Vec<f64>>>,
     intra_weights: Vec<Vec<Vec<f64>>>,
 }
-
+#[derive(Debug, Clone)]
 pub struct SnnBuilder<N: Neuron+ Clone+Debug+'static>{
     params: SnnParams<N>
 }
@@ -33,7 +36,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
     }
 
 
-    pub fn add_weight<const NUM_NEURONS: usize, const INPUT_DIM: usize>(&mut self, weights:[[f64; INPUT_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N> {
+    pub fn add_weight<const NUM_NEURONS: usize, const INPUT_DIM: usize >(&mut self, weights:[[f64; INPUT_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N> {
         let mut new_weights = <Vec<Vec<f64>>>::new();
 
         for n_weight in &weights{
@@ -65,4 +68,28 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         self.params.intra_weights.push(new_weights);
         self
     }
+
+    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(self)-> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
+        if self.params.extra_weights.len() != self.params.neurons.len() || self.params.intra_weights.len() != self.params.neurons.len(){
+            panic!("Wrong number bewteen layers!")
+        }
+        //Eventualmente fare check su #pesi
+
+        let mut layers: Vec<Arc<Mutex<Layer<N>>>> = Vec::new();
+        let mut n_iter = self.params.neurons.into_iter();
+        let mut extra_iter = self.params.extra_weights.into_iter();
+        let mut intra_iter = self.params.intra_weights.into_iter();
+
+        while let Some(layer) = n_iter.next() {
+            let new_extra_iter = extra_iter.next().unwrap();
+            let new_intra_iter = intra_iter.next().unwrap();
+
+            /* create and save the new layer */
+            let new_layer = Layer::new(layer, new_extra_iter, new_intra_iter);
+            layers.push(Arc::new(Mutex::new(new_layer)));
+        }
+        SNN::<N, {INPUT_DIM }, { OUTPUT_DIM }>::new(layers)
+    }
+
+
 }
