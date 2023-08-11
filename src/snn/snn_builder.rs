@@ -27,9 +27,12 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         self.params.clone()
     }
 
+    /** Per ora serve solo logicamente */
     pub fn add_layer(&mut self) -> &mut SnnBuilder<N> {
         self
     }
+
+
     pub fn add_weight<const NUM_NEURONS: usize, const INPUT_DIM: usize>(&mut self, weights:[[f64; INPUT_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N> {
         let mut new_weights = <Vec<Vec<f64>>>::new();
 
