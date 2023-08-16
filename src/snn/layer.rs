@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::sync::mpsc::{Receiver, Sender};
 use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
@@ -34,12 +35,11 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
     }
 
     pub fn process(&mut self, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
-
         /**Inizializiamo il layer **/
-        self.init_layer();
+        //self.init_layer();
 
         /** Prendiamo l'output del layer precedente **/
-        if let Ok(input_spike) = layer_input_rc.recv() {
+        while let Ok(input_spike) = layer_input_rc.recv() {
             let instant = input_spike.ts;
             let mut output_spikes = Vec::<u8>::with_capacity(self.neurons.len());
             let mut at_least_one_spike = false;
@@ -48,19 +48,27 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
                 l'output
             **/
 
-            for (index, neuron) in self.neurons.iter_mut().enumerate(){
+            for (n_index, neuron) in self.neurons.iter_mut().enumerate(){
                 let mut intra_weights_sum = 0f64;
                 let mut extra_weights_sum = 0f64;
 
-                todo!();
-
+                for (w_index, weight) in self.weights[n_index].iter().enumerate(){
+                    if input_spike.spikes[w_index] != 0 {
+                        extra_weights_sum += weight;
+                    }
+                }
+                for (i_index, intra) in self.intra_weights[n_index].iter().enumerate(){
+                    if i_index != n_index && self.prev_output[i_index] != 0{
+                        intra_weights_sum+= intra;
+                    }
+                }
                 /** Calcolo il potenziale di membrana e l'output del neurone **/
                 let neuron_spike = neuron.update_v_mem(instant,intra_weights_sum, extra_weights_sum);
                 output_spikes.push(neuron_spike);
 
 
             }
-
+            self.prev_output=output_spikes.clone();
             /** Creiamo l'output del prossimo layer **/
             let output_spike = Evento::new(instant, output_spikes);
 
