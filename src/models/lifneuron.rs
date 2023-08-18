@@ -25,9 +25,6 @@ impl LIFNeuron {
         }
     }
 
-    pub fn v_th(&self) -> f64 {
-        self.v_th
-    }
     pub fn v_rest(&self) -> f64 {
         self.v_rest
     }
@@ -69,6 +66,22 @@ impl Neuron for LIFNeuron{
     fn init_neuron(&mut self) {
         self.v_mem= self.v_rest;
         self.t_s = 0u64;
+    }
+
+    fn get_th(&self) -> f64 {
+        self.v_th
+    }
+
+    fn set_th(&mut self, new_th: f64) {
+        self.v_th = new_th;
+    }
+
+    fn get_mem(&self) -> f64 {
+        self.v_mem
+    }
+
+    fn set_mem(&mut self, new_mem: f64){
+        self.v_mem = new_mem;
     }
 }
 

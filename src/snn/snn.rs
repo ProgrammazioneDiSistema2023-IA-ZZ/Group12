@@ -6,11 +6,7 @@ use crate::snn::Evento;
 use crate::snn::processor::Processor;
 use rand::Rng;
 
-pub enum ErrorType{
-    Stuck0,
-    Stuck1,
-    Flip
-}
+
 /**
     struttura rappresentante la rete neurale spiking
     - N: tipo generico che rappresenta un Neurone
@@ -99,36 +95,7 @@ impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM
 
         raw_matrix
     }
-    pub fn embed_error(variable:f64, error:ErrorType)->f64{
-        let mut bit_value:u64=variable.to_bits();
-        let mut rng = rand::thread_rng();
-        let position: u32 = rng.gen_range(0..64);
-        bit_value=match error {
-            ErrorType::Stuck0 => SNN::<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>::unset_bit(bit_value, position),
-            ErrorType::Stuck1 => SNN::<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>::set_bit(bit_value, position),
-            ErrorType::Flip => SNN::<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>::flip_bit(bit_value, position),
-        };
 
-        f64::from_bits(bit_value)
-    }
-    /**
-        Setta a 1 il bit in posizione *position* di *value*
-    */
-     fn set_bit(value:u64, position:u32)->u64{
-        /* maschera del tipo 0001000 */
-        let bit_mask=1u64<<position;
-        value | bit_mask
-    }
-    fn unset_bit(value:u64, position:u32)->u64{
-        /* maschera del tipo 1110111 */
-        let bit_mask=!(1u64<<position);
-        value & bit_mask
-    }
-    fn flip_bit(value:u64, position:u32)->u64{
-        /* maschera del tipo 0001000 */
-        let bit_mask=1u64<<position;
-        value ^ bit_mask
-    }
 }
 
 impl<'a, N: Neuron+Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM : usize > IntoIterator for &'a mut SNN<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>{

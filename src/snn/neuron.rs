@@ -4,4 +4,12 @@ pub trait Neuron: Send{
 
     fn init_neuron(&mut self);
 
+    fn get_th(&self) -> f64;
+
+    fn set_th(&mut self, new_th: f64);
+
+    fn get_mem(&self) -> f64;
+
+    fn set_mem(&mut self, new_mem: f64);
+
 }

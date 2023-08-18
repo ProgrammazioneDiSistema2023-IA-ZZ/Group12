@@ -3,6 +3,7 @@ pub mod snn_builder; /*privato */
     mod layer;
     mod processor;
     mod snn;
+mod error_handling;
 
 /**
     Oggetto che rappresenta  il valore di output generato dalle SNN
