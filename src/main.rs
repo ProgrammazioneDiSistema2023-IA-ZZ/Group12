@@ -7,7 +7,7 @@ mod snn;
 
 fn main(){
     let mut components =Vec::<i32>::new();
-    let mut error_index = 0;
+    let mut error_index = -1;
     let mut n_faults = 0;
     print_menu(&mut components,&mut  error_index, &mut n_faults);
     print_configuration(&components, error_index, n_faults);
@@ -63,6 +63,7 @@ fn print_components_menu(componets: &mut Vec<i32>){
     println!("#######################################################");
     println!("\n        Spiking Neural Networks e Resilienza\n");
     println!("#######################################################");
+    println!("#                                                     #");
     println!("#        Components:                                  #");
     println!("#         0 => Threshold                              #");
     println!("#         1 => Membrane                               #");
@@ -109,6 +110,7 @@ fn print_components_menu(componets: &mut Vec<i32>){
 }
 fn print_error_menu(error_index: &mut i32){
     println!("#######################################################");
+    println!("#                                                     #");
     println!("#       Error Type:                                   #");
     println!("#         0 => Stuck-at-0                             #");
     println!("#         1 => Stuck-at-1                             #");
@@ -175,7 +177,7 @@ fn print_configuration(components: &Vec<i32>, error_index:  i32, n_faults: i32){
             1 => components_string += "\n#             -Membrane                               #",
             2 => components_string += "\n#             -Extra Weights                          #",
             3 => components_string += "\n#             -Intra Weights                          #",
-            _ => {}
+            _ => components_string += "\n#             -None                                   #",
         }
     }
     let mut error_type = String::from("                                 #");
@@ -183,10 +185,12 @@ fn print_configuration(components: &Vec<i32>, error_index:  i32, n_faults: i32){
         0=> error_type += "\n#             Stuck-At-0                              #",
         1=> error_type += "\n#             Stuck-At-1                              #",
         2=> error_type += "\n#             Flip-bit                                #",
-        _ => {}
+        _ => error_type += "\n#            None                                     #",
     }
     println!("#######################################################");
+    println!("#                                                     #");
     println!("#       Configuration:                                #");
+    println!("#                                                     #");
     println!("#         Components:{}                               ", components_string);
     println!("#                                                     #");
     println!("#         Error Type:{}                               ", error_type);
