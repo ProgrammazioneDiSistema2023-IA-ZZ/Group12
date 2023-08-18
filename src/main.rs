@@ -4,6 +4,7 @@ mod models;
 mod snn;
 
 
+
 fn main(){
     let mut snn = SnnBuilder::new().add_layer().add_weight([
         [0.1, 0.2],
@@ -34,6 +35,11 @@ fn main(){
 
     //let first_params = snn.get_params();
     //println!("{:?}", first_params);
+
+    let mut line = String::new();
+    std::io::stdin().read_line(&mut line).unwrap();
+    //args.name = stringa in input
+    println!("STRINGA: {}", line);
 
     println!("Params Created!")
 
