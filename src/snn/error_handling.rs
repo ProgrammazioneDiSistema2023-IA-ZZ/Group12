@@ -64,7 +64,7 @@ pub fn membrane_fault<N: Neuron+Clone+'static>(neuron: &mut N){
 pub fn extra_weights_fault(weight: &mut f64){
     println!("Old Weight -> {}", weight);
 
-    let new_weight = embed_error(*weight, Flip);
+    let new_weight = embed_error(*weight, Stuck0);
 
     *weight = new_weight;
     println!("New Weight -> {}", weight);
