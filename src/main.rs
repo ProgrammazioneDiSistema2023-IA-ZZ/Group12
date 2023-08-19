@@ -1,5 +1,7 @@
 use crate::models::lifneuron::LIFNeuron;
 use crate::snn::snn_builder::SnnBuilder;
+use std::fs::File;
+use std::io::{Write, Result};
 mod models;
 mod snn;
 
@@ -11,7 +13,6 @@ fn main(){
     let mut n_faults = 0;
     print_menu(&mut components,&mut  error_index, &mut n_faults);
     print_configuration(&components, error_index, n_faults);
-
 
 
     let mut snn = SnnBuilder::new().add_layer().add_weight([
@@ -38,7 +39,8 @@ fn main(){
         [0.0, -0.25],
         [-0.10, 0.0]
     ]).clone().build::<3,2>();
-    let snn_result=snn.process(&[[0,1,1], [0,0,1], [1,1,1]]);
+    let mut input = [[0,1,1], [0,0,1], [1,1,1]];
+    let snn_result=snn.process(&input);
     println!("{:?}", snn_result);
 
     //let first_params = snn.get_params();
@@ -48,6 +50,8 @@ fn main(){
     // std::io::stdin().read_line(&mut line).unwrap();
     // //args.name = stringa in input
     // println!("STRINGA: {}", line);
+
+    write_configuration_to_file("output.txt", &components, error_index, n_faults, &input, &snn_result).expect("Impossible to create file!");
 
     println!("Params Created!")
 
@@ -199,4 +203,52 @@ fn print_configuration(components: &Vec<i32>, error_index:  i32, n_faults: i32){
     println!("#             {}                                      #", n_faults);
     println!("#                                                     #");
     println!("#######################################################");
+}
+fn write_configuration_to_file(filename: &str, components: &Vec<i32>, error_index: i32, n_faults: i32, input: &[[u8; 3]; 3], output_r: &[[u8; 2]; 3]) -> Result<()> {
+    let mut components_string = String::from("                                 #");
+    for i in components {
+        match i {
+            0 => components_string += "\n#             -Threshold                              #",
+            1 => components_string += "\n#             -Membrane                               #",
+            2 => components_string += "\n#             -Extra Weights                          #",
+            3 => components_string += "\n#             -Intra Weights                          #",
+            _ => components_string += "\n#             -None                                   #",
+        }
+    }
+    let mut error_type = String::from("                                 #");
+    match error_index {
+        0 => error_type += "\n#             Stuck-At-0                              #",
+        1 => error_type += "\n#             Stuck-At-1                              #",
+        2 => error_type += "\n#             Flip-bit                                #",
+        _ => error_type += "\n#            None                                     #",
+    }
+
+    let mut file = File::create(filename)?;
+    writeln!(file, "#######################################################")?;
+    writeln!(file," \n        Spiking Neural Networks e Resilienza\n")?;
+    writeln!(file, "#######################################################")?;
+    writeln!(file, "#                                                     #")?;
+    writeln!(file, "#       Configuration:                                #")?;
+    writeln!(file, "#                                                     #")?;
+    writeln!(file, "#         Components:{}                               ", components_string)?;
+    writeln!(file, "#                                                     #")?;
+    writeln!(file, "#         Error Type:{}                               ", error_type)?;
+    writeln!(file, "#                                                     #")?;
+    writeln!(file, "#         Number of Faults:                           #")?;
+    writeln!(file, "#             {}                                      #", n_faults)?;
+    writeln!(file, "#                                                     #")?;
+    writeln!(file, "#######################################################")?;
+
+    writeln!(file, "#          Input                                      #")?;
+    writeln!(file, "#          {:?}                                       ",input)?;
+
+    writeln!(file, "#          Output                                     #")?;
+    writeln!(file, "#          {:?}                                       ",output_r)?;
+
+    writeln!(file, "\n#######################################################")?;
+
+
+
+
+    Ok(())
 }
