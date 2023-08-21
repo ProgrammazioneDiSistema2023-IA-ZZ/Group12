@@ -4,9 +4,10 @@ use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
 use crate::snn::snn::SNN;
 use rand::Rng;
-use crate::snn::error_handling;
+use crate::snn::{error_handling, info_table};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
+use crate::snn::info_table::InfoTable;
 
 #[derive(EnumIter)]
 pub enum ErrorComponent{
@@ -102,7 +103,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 
     }
 
-    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self  , components: &Vec<i32>, errorType: i32)-> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
+    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
         if self.params.extra_weights.len() != self.params.neurons.len() || self.params.intra_weights.len() != self.params.neurons.len(){
             panic!("Wrong number bewteen layers!")
         }
@@ -123,12 +124,12 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         if components.len() != 0 {
             let component_index = rng.gen_range(0..components.len());
             component = components[component_index];
+            info_table.add_component(component as usize);
+            info_table.add_error_type(error_type as usize);
         }
         let (layer_index, neuron_index) = SnnBuilder::choose_neuron(&self.params.neurons.clone());
         let (layer_index_weight, index_weights, index_weight) = SnnBuilder::<N>::choose_weights(&self.params.extra_weights.clone());
         let (layer_intra_index_weight, index_intra_weights, index_intra_weight) = SnnBuilder::<N>::choose_weights(&self.params.intra_weights.clone());
-
-
 
         /** Generazione componente guasto **/
         /** Possibili componenti guasti
@@ -137,10 +138,10 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
          -- Potenziali
         **/
         match component {
-            0 => error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], errorType),
-            1 => error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index], errorType),
-            2 => error_handling::extra_weights_fault(&mut self.params.extra_weights[layer_index_weight][index_weights][index_weight], errorType),
-            3 => error_handling::extra_weights_fault(&mut self.params.intra_weights[layer_intra_index_weight][index_intra_weights][index_intra_weight], errorType),
+            0 => {info_table.add_layer(layer_index); info_table.add_neuron(neuron_index); error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, info_table)},
+            1 => {info_table.add_layer(layer_index); info_table.add_neuron(neuron_index); error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, info_table)},
+            2 => {info_table.add_layer(layer_index_weight); info_table.add_neuron(index_weights); error_handling::extra_weights_fault(&mut self.params.extra_weights[layer_index_weight][index_weights][index_weight], error_type, info_table)},
+            3 => {info_table.add_layer(layer_intra_index_weight); info_table.add_neuron(index_intra_weights); error_handling::extra_weights_fault(&mut self.params.intra_weights[layer_intra_index_weight][index_intra_weights][index_intra_weight], error_type,info_table )},
             _ =>{},
         }
 

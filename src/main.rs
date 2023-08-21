@@ -1,16 +1,18 @@
 use crate::models::lifneuron::LIFNeuron;
 use crate::snn::snn_builder::SnnBuilder;
+use crate::snn::info_table::InfoTable;
 use std::fs::File;
 use std::io::{Write, Result};
 mod models;
 mod snn;
 
-
-
 fn main(){
     let mut components =Vec::<i32>::new();
     let mut error_index = -1;
     let mut n_faults = 0;
+    let mut table = InfoTable::new();
+
+
     print_menu(&mut components,&mut  error_index, &mut n_faults);
     print_configuration(&components, error_index, n_faults);
 
@@ -40,10 +42,16 @@ fn main(){
         [-0.10, 0.0]
     ]);
 
+    let mut input = [[0,1,1], [0,0,1], [1,1,1]];
+    /** SNN WITHOUT ANY ERROR**/
+    let mut snn_0_error = snn.clone().build::<3,2>(&Vec::new(), -1, &mut table);
+    let snn_result_0_error= snn_0_error.process(&input);
+    /** SNN WITH ERRORS**/
     for _ in 0..n_faults {
-        let mut SNN = snn.clone().build::<3,2>(&components, error_index);
-        let mut input = [[0,1,1], [0,0,1], [1,1,1]];
+        let mut SNN = snn.clone().build::<3,2>(&components, error_index, &mut table);
         let snn_result= SNN.process(&input);
+        let acc = calculate_accuracy(&snn_result_0_error, &snn_result);
+        table.add_output(acc*100.0);
         println!("{:?}", snn_result);
     }
     //let first_params = snn.get_params();
@@ -55,9 +63,19 @@ fn main(){
     // println!("STRINGA: {}", line);
 
     //write_configuration_to_file("output.txt", &components, error_index, n_faults, &input, &snn_result).expect("Impossible to create file!");
-
+    //println!("{:?}",table);
+    table.print_table();
     println!("Params Created!")
 
+}
+fn calculate_accuracy(v1: &[[u8; 2]; 3], v2: &[[u8; 2]; 3]) -> f64 {
+    let total_elements = v1.iter().map(|row| row.len()).sum::<usize>();
+    let matching_elements = v1.iter().zip(v2.iter())
+        .map(|(row1, row2)| row1.iter().zip(row2.iter()).filter(|&(elem1, elem2)| elem1 == elem2).count())
+        .sum::<usize>();
+
+    let accuracy = matching_elements as f64 / total_elements as f64;
+    accuracy
 }
 fn print_menu(components: &mut Vec<i32>, error_index: &mut i32, n_faults:&mut  i32){
     print_components_menu(components);

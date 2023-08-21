@@ -4,6 +4,7 @@ pub mod snn_builder; /*privato */
     mod processor;
     mod snn;
 mod error_handling;
+pub(crate) mod info_table;
 
 /**
     Oggetto che rappresenta  il valore di output generato dalle SNN
