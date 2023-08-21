@@ -24,9 +24,9 @@ fn main(){
         [0.3, 0.4],
         [0.5, 0.6]
     ]).add_neurons([
-                        LIFNeuron::new(0.3, 0.05, 0.1, 1.0, 1.0),
-                        LIFNeuron::new(0.3, 0.05, 0.1, 1.0, 1.0),
-                        LIFNeuron::new(0.3, 0.05, 0.1, 1.0, 1.0),
+                        LIFNeuron::new(0.03, 0.05, 0.1, 1.0, 1.0),
+                        LIFNeuron::new(0.05, 0.05, 0.1, 1.0, 1.0),
+                        LIFNeuron::new(0.09, 0.05, 0.1, 1.0, 1.0),
     ]).add_intra_weights([
         [0.0, -0.25, -0.3],
         [-0.10, 0.0, -0.3],
@@ -37,14 +37,36 @@ fn main(){
             [0.1, 0.2, 0.3],
             [0.4, 0.5, 0.6]
         ]).add_neurons([
+        LIFNeuron::new(0.07, 0.05, 0.1, 1.0, 1.0),
         LIFNeuron::new(0.3, 0.05, 0.1, 1.0, 1.0),
+    ]).add_intra_weights([
+        [0.0, -0.25],
+        [-0.10, 0.0]
+    ]).add_layer().add_weight([
+        [0.1, 0.2],
+        [0.3, 0.4],
+        [0.5, 0.6]
+    ]).add_neurons([
+        LIFNeuron::new(0.03, 0.05, 0.1, 1.0, 1.0),
+        LIFNeuron::new(0.05, 0.05, 0.1, 1.0, 1.0),
+        LIFNeuron::new(0.09, 0.05, 0.1, 1.0, 1.0),
+    ]).add_intra_weights([
+        [0.0, -0.25, -0.3],
+        [-0.10, 0.0, -0.3],
+        [-0.1, -0.3,  0.0]
+    ]).add_layer()
+        .add_weight([
+            [0.1, 0.2, 0.3],
+            [0.4, 0.5, 0.6]
+        ]).add_neurons([
+        LIFNeuron::new(0.07, 0.05, 0.1, 1.0, 1.0),
         LIFNeuron::new(0.3, 0.05, 0.1, 1.0, 1.0),
     ]).add_intra_weights([
         [0.0, -0.25],
         [-0.10, 0.0]
     ]);
 
-    let mut input = [[0,1,1], [0,0,1], [1,1,1]];
+    let mut input = [[0,1,1], [0,0,1], [1,1,1], [1,0,0], [0,0,1], [0,1,0]];
     /** SNN WITHOUT ANY ERROR**/
     let mut snn_0_error = snn.clone().build::<3,2>(&Vec::new(), -1, &mut table);
     let snn_result_0_error= snn_0_error.process(&input);
@@ -53,11 +75,10 @@ fn main(){
         let mut SNN = snn.clone().build::<3,2>(&components, error_index, &mut table);
         let snn_result= SNN.process(&input);
         let acc = calculate_accuracy(&snn_result_0_error, &snn_result);
-        table.add_output(acc*100.0);
+        table.add_output((1.0-acc)*100.0);
         println!("{:?}", snn_result);
     }
-    //let first_params = snn.get_params();
-    //println!("{:?}", first_params);
+
 
     // let mut line = String::new();
     // std::io::stdin().read_line(&mut line).unwrap();
@@ -70,7 +91,7 @@ fn main(){
     //println!("Params Created!")
 
 }
-fn calculate_accuracy(v1: &[[u8; 2]; 3], v2: &[[u8; 2]; 3]) -> f64 {
+fn calculate_accuracy(v1: &[[u8; 2]; 6], v2: &[[u8; 2]; 6]) -> f64 {
     let total_elements = v1.iter().map(|row| row.len()).sum::<usize>();
     let matching_elements = v1.iter().zip(v2.iter())
         .map(|(row1, row2)| row1.iter().zip(row2.iter()).filter(|&(elem1, elem2)| elem1 == elem2).count())

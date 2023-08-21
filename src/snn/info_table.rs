@@ -8,7 +8,8 @@ pub struct InfoTable {
     components: Vec<usize>,
     bits: Vec<usize>,
     error_type: Vec<usize>,
-    accuracy: Vec<f64>
+    accuracy: Vec<f64>,
+    counter: i32
 }
 
 impl InfoTable {
@@ -20,6 +21,7 @@ impl InfoTable {
             bits: vec![],
             error_type: vec![],
             accuracy: vec![],
+            counter: 0,
         }
     }
     pub fn add_layer(&mut self, layer_index: usize){
@@ -38,6 +40,9 @@ impl InfoTable {
         self.error_type.push(error_type);
     }
     pub fn add_output(&mut self, acc: f64){
+        if acc != 0.0{
+            self.counter+=1;
+        }
         self.accuracy.push(acc);
     }
     pub fn print_table(&mut self, ){
@@ -55,6 +60,8 @@ impl InfoTable {
         let table_complete = table.table().title(vec!["Layer".cell().bold(true), "Neuron".cell().bold(true), "Component".cell().bold(true), "Bit".cell().bold(true),"Error".cell().bold(true), "Impact On Accuracy".cell().bold(true)]);
         let table_display = table_complete.display().unwrap();
         print!("{}", table_display);
+        println!("#######################################################");
+        println!("# Number of Affected inferences: {}                   #", self.counter);
     }
     pub fn print_table_file(&mut self, file: &mut File){
         let len =  self.layers.len() ;

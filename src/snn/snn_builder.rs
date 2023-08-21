@@ -113,9 +113,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         //Eventualmente fare check su #pesi
 
         let mut layers: Vec<Arc<Mutex<Layer<N>>>> = Vec::new();
-        let mut n_iter = self.params.neurons.clone().into_iter();
-        let mut extra_iter = self.params.extra_weights.clone().into_iter();
-        let mut intra_iter = self.params.intra_weights.clone().into_iter();
+
 
         /** Generazione dell'errore sul componente casuale **/
         let mut rng = rand::thread_rng();
@@ -145,6 +143,9 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
             _ =>{},
         }
 
+        let mut n_iter = self.params.neurons.clone().into_iter();
+        let mut extra_iter = self.params.extra_weights.clone().into_iter();
+        let mut intra_iter = self.params.intra_weights.clone().into_iter();
 
         while let Some(layer) = n_iter.next() {
             let new_extra_iter = extra_iter.next().unwrap();
