@@ -62,7 +62,7 @@ impl InfoTable {
         writeln!(file,"| Layer | Neuron |  Component  | Bit |    Error   | Impact On Accuracy |");
         writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+");
         for n in  0..len{
-            writeln!(file," {}        {}       {}   {}     {}              {} ",
+            writeln!(file," {}        {}       {}   {}   {}              {} ",
                      self.layers[n],
                      self.neurons[n],
                      from_index_to_str_component(self.components[n]),
