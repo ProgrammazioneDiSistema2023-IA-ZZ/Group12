@@ -14,8 +14,8 @@ fn main(){
     print_menu(&mut components,&mut  error_index, &mut n_faults);
     print_configuration(&components, error_index, n_faults);
 
-
-    let mut snn = SnnBuilder::new().add_layer().add_weight([
+    let mut binding = SnnBuilder::new();
+    let mut snn = binding.add_layer().add_weight([
         [0.1, 0.2],
         [0.3, 0.4],
         [0.5, 0.6]
@@ -38,11 +38,14 @@ fn main(){
     ]).add_intra_weights([
         [0.0, -0.25],
         [-0.10, 0.0]
-    ]).clone().build::<3,2>();
-    let mut input = [[0,1,1], [0,0,1], [1,1,1]];
-    let snn_result=snn.process(&input);
-    println!("{:?}", snn_result);
+    ]);
 
+    for _ in 0..n_faults {
+        let mut SNN = snn.clone().build::<3,2>(&components, error_index);
+        let mut input = [[0,1,1], [0,0,1], [1,1,1]];
+        let snn_result= SNN.process(&input);
+        println!("{:?}", snn_result);
+    }
     //let first_params = snn.get_params();
     //println!("{:?}", first_params);
 
@@ -51,7 +54,7 @@ fn main(){
     // //args.name = stringa in input
     // println!("STRINGA: {}", line);
 
-    write_configuration_to_file("output.txt", &components, error_index, n_faults, &input, &snn_result).expect("Impossible to create file!");
+    //write_configuration_to_file("output.txt", &components, error_index, n_faults, &input, &snn_result).expect("Impossible to create file!");
 
     println!("Params Created!")
 

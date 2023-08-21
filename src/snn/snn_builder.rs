@@ -102,9 +102,12 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 
     }
 
-    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self)-> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
+    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self  , components: &Vec<i32>, errorType: i32)-> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
         if self.params.extra_weights.len() != self.params.neurons.len() || self.params.intra_weights.len() != self.params.neurons.len(){
             panic!("Wrong number bewteen layers!")
+        }
+        if components.len() == 0 {
+
         }
         //Eventualmente fare check su #pesi
 
@@ -115,8 +118,12 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 
         /** Generazione dell'errore sul componente casuale **/
         let mut rng = rand::thread_rng();
-        //let component = rng.gen_range(0..ErrorComponent::iter().count());
-        let component = 3;
+        /** Se il vettore è vuoto allora non ci sono componenti da verificare **/
+        let mut component = -1;
+        if components.len() != 0 {
+            let component_index = rng.gen_range(0..components.len());
+            component = components[component_index];
+        }
         let (layer_index, neuron_index) = SnnBuilder::choose_neuron(&self.params.neurons.clone());
         let (layer_index_weight, index_weights, index_weight) = SnnBuilder::<N>::choose_weights(&self.params.extra_weights.clone());
         let (layer_intra_index_weight, index_intra_weights, index_intra_weight) = SnnBuilder::<N>::choose_weights(&self.params.intra_weights.clone());
@@ -130,10 +137,10 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
          -- Potenziali
         **/
         match component {
-            0 => error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index]),
-            1 => error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index]),
-            2 => error_handling::extra_weights_fault(&mut self.params.extra_weights[layer_index_weight][index_weights][index_weight]),
-            3 => error_handling::extra_weights_fault(&mut self.params.intra_weights[layer_intra_index_weight][index_intra_weights][index_intra_weight]),
+            0 => error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], errorType),
+            1 => error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index], errorType),
+            2 => error_handling::extra_weights_fault(&mut self.params.extra_weights[layer_index_weight][index_weights][index_weight], errorType),
+            3 => error_handling::extra_weights_fault(&mut self.params.intra_weights[layer_intra_index_weight][index_intra_weights][index_intra_weight], errorType),
             _ =>{},
         }
 

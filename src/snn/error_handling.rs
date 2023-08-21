@@ -3,12 +3,15 @@ use crate::snn;
 use crate::snn::error_handling::ErrorType::{Flip, Stuck0, Stuck1};
 use crate::snn::neuron::Neuron;
 
+#[derive(Clone)]
 pub enum ErrorType{
     Stuck0,
     Stuck1,
     Flip,
     None
 }
+
+const ERROR_TABLE: [ErrorType; 4] = [ErrorType::Stuck0, ErrorType::Stuck1, ErrorType::Flip, ErrorType::None];
 
 fn embed_error(variable:f64, error:ErrorType)->f64{
     let mut bit_value:u64=variable.to_bits();
@@ -42,29 +45,29 @@ fn flip_bit(value:u64, position:u32)->u64{
     value ^ bit_mask
 }
 
-pub fn threshold_fault<N: Neuron+Clone+'static>(neuron: &mut N){
+pub fn threshold_fault<N: Neuron+Clone+'static>(neuron: &mut N, errorType: i32){
     println!("Old Threshold -> {}", neuron.get_th());
-    let new_threshold = embed_error(neuron.get_th(), Stuck1);
+    let new_threshold = embed_error(neuron.get_th(), ERROR_TABLE[errorType as usize].clone());
 
     neuron.set_th(new_threshold);
     println!("New Threshold -> {}", neuron.get_th());
 
 }
 
-pub fn membrane_fault<N: Neuron+Clone+'static>(neuron: &mut N){
-    println!("Old membrane -> {}", neuron.get_mem().to_bits());
+pub fn membrane_fault<N: Neuron+Clone+'static>(neuron: &mut N, errorType: i32){
+    println!("Old membrane -> {}", neuron.get_mem());
 
-    let new_mem = embed_error(neuron.get_mem(), Flip);
+    let new_mem = embed_error(neuron.get_mem(), ERROR_TABLE[errorType as usize].clone());
     neuron.set_mem(new_mem);
 
     println!("New membrane -> {}", neuron.get_mem());
 
 }
 
-pub fn extra_weights_fault(weight: &mut f64){
+pub fn extra_weights_fault(weight: &mut f64, errorType: i32){
     println!("Old Weight -> {}", weight);
 
-    let new_weight = embed_error(*weight, Stuck0);
+    let new_weight = embed_error(*weight, ERROR_TABLE[errorType as usize].clone());
 
     *weight = new_weight;
     println!("New Weight -> {}", weight);
