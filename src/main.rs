@@ -87,7 +87,7 @@ fn main(){
 
     menu_handler::write_configuration_to_file(&mut file, &components, error_index, n_faults).expect("Impossible to create file!");
     table.print_table();
-    table.print_table_file(&mut file)
+    table.print_table_file(&mut file);
     //println!("Params Created!")
 
 }

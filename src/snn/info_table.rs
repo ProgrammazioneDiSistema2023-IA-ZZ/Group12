@@ -1,3 +1,4 @@
+use std::io::Error;
 use std::fs::File;
 use std::io::Write;
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
@@ -63,11 +64,11 @@ impl InfoTable {
         println!("#######################################################");
         println!("# Number of Affected inferences: {}                   #", self.counter);
     }
-    pub fn print_table_file(&mut self, file: &mut File){
+    pub fn print_table_file(&mut self, file: &mut File)->Result<(),Error>{
         let len =  self.layers.len() ;
-        writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+");
-        writeln!(file,"| Layer | Neuron |  Component  | Bit |    Error   | Impact On Accuracy |");
-        writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+");
+        writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+")?;
+        writeln!(file,"| Layer | Neuron |  Component  | Bit |    Error   | Impact On Accuracy |")?;
+        writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+")?;
         for n in  0..len{
             writeln!(file," {}        {}       {}   {}   {}              {} ",
                      self.layers[n],
@@ -75,11 +76,12 @@ impl InfoTable {
                      from_index_to_str_component(self.components[n]),
                      self.bits[n],
                      from_index_to_str_error(self.error_type[n]),
-                     format!("{}%", self.accuracy[n]));
-            writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+");
+                     format!("{}%", self.accuracy[n]))?;
+            writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+")?;
 
         }
-
+        writeln!(file,"# Number of Affected inferences: {}                   #", self.counter)?;
+        Ok(())
     }
 
 }
