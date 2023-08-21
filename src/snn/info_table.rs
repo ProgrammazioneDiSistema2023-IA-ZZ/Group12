@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::Write;
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
 #[derive(Debug)]
 pub struct InfoTable {
@@ -38,14 +40,39 @@ impl InfoTable {
     pub fn add_output(&mut self, acc: f64){
         self.accuracy.push(acc);
     }
-    pub fn print_table(&mut self){
+    pub fn print_table(&mut self, ){
         let len =  self.layers.len() ;
         let mut table = vec![];
         for n in  0..len{
-            table.push(vec![self.layers[n].cell(), self.neurons[n].cell(), from_index_to_str_component(self.components[n]).cell(), self.bits[n].cell(), from_index_to_str_error(self.error_type[n]).cell(), (self.accuracy[n].to_string()+"%").cell()])
+            table.push(vec![self.layers[n].cell().justify(Justify::Right),
+                            self.neurons[n].cell().justify(Justify::Right),
+                            from_index_to_str_component(self.components[n]).cell().justify(Justify::Right),
+                            self.bits[n].cell().justify(Justify::Right),
+                            from_index_to_str_error(self.error_type[n]).cell().justify(Justify::Right),
+                            (self.accuracy[n].to_string()+"%").cell().justify(Justify::Right)
+            ])
         }
-        let table_display = table.table().title(vec!["Layer".cell().bold(true), "Neuron".cell().bold(true), "Component".cell().bold(true), "Bit".cell().bold(true),"Error".cell().bold(true), "Impact On Accuracy".cell().bold(true)]).display().unwrap();
+        let table_complete = table.table().title(vec!["Layer".cell().bold(true), "Neuron".cell().bold(true), "Component".cell().bold(true), "Bit".cell().bold(true),"Error".cell().bold(true), "Impact On Accuracy".cell().bold(true)]);
+        let table_display = table_complete.display().unwrap();
         print!("{}", table_display);
+    }
+    pub fn print_table_file(&mut self, file: &mut File){
+        let len =  self.layers.len() ;
+        writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+");
+        writeln!(file,"| Layer | Neuron |  Component  | Bit |    Error   | Impact On Accuracy |");
+        writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+");
+        for n in  0..len{
+            writeln!(file," {}        {}       {}   {}     {}              {} ",
+                     self.layers[n],
+                     self.neurons[n],
+                     from_index_to_str_component(self.components[n]),
+                     self.bits[n],
+                     from_index_to_str_error(self.error_type[n]),
+                     format!("{}%", self.accuracy[n]));
+            writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+");
+
+        }
+
     }
 
 }

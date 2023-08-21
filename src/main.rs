@@ -11,7 +11,7 @@ fn main(){
     let mut error_index = -1;
     let mut n_faults = 0;
     let mut table = InfoTable::new();
-
+    let mut file = File::create("output.txt").expect("Unable to create file");
 
     print_menu(&mut components,&mut  error_index, &mut n_faults);
     print_configuration(&components, error_index, n_faults);
@@ -62,10 +62,10 @@ fn main(){
     // //args.name = stringa in input
     // println!("STRINGA: {}", line);
 
-    //write_configuration_to_file("output.txt", &components, error_index, n_faults, &input, &snn_result).expect("Impossible to create file!");
-    //println!("{:?}",table);
+    write_configuration_to_file(&mut file, &components, error_index, n_faults).expect("Impossible to create file!");
     table.print_table();
-    println!("Params Created!")
+    table.print_table_file(&mut file)
+    //println!("Params Created!")
 
 }
 fn calculate_accuracy(v1: &[[u8; 2]; 3], v2: &[[u8; 2]; 3]) -> f64 {
@@ -225,7 +225,7 @@ fn print_configuration(components: &Vec<i32>, error_index:  i32, n_faults: i32){
     println!("#                                                     #");
     println!("#######################################################");
 }
-fn write_configuration_to_file(filename: &str, components: &Vec<i32>, error_index: i32, n_faults: i32, input: &[[u8; 3]; 3], output_r: &[[u8; 2]; 3]) -> Result<()> {
+fn write_configuration_to_file(file: &mut File, components: &Vec<i32>, error_index: i32, n_faults: i32) -> Result<()> {
     let mut components_string = String::from("                                 #");
     for i in components {
         match i {
@@ -244,7 +244,7 @@ fn write_configuration_to_file(filename: &str, components: &Vec<i32>, error_inde
         _ => error_type += "\n#            None                                     #",
     }
 
-    let mut file = File::create(filename)?;
+
     writeln!(file, "#######################################################")?;
     writeln!(file," \n        Spiking Neural Networks e Resilienza\n")?;
     writeln!(file, "#######################################################")?;
@@ -260,13 +260,6 @@ fn write_configuration_to_file(filename: &str, components: &Vec<i32>, error_inde
     writeln!(file, "#                                                     #")?;
     writeln!(file, "#######################################################")?;
 
-    writeln!(file, "#          Input                                      #")?;
-    writeln!(file, "#          {:?}                                       ",input)?;
-
-    writeln!(file, "#          Output                                     #")?;
-    writeln!(file, "#          {:?}                                       ",output_r)?;
-
-    writeln!(file, "\n#######################################################")?;
 
 
 
