@@ -27,8 +27,14 @@
 ## Organizzazione
 La libreria è organizzata come segue:
 - ### Builder
-  Il modulo `Builder` permette di creare la struttura della rete con i rispettivi layerscx
+Il modulo `Builder` permette di creare la struttura della rete con i rispettivi layers, neuroni per ciascun layer, i corrispettivi pesi tra neuroni dello stesso layer e tra layer diversi. In particolare il modulo
+`SnnBuilder` permette di allocare *staticamente* una `Spike Neural Network` prendendo per ciascun layer un vettore statico di neuroni, uno di pesi e un altro di pesi tra i vari layer. La libreria può controllare
+la correttezza della struttura della rete a *compile time*, ma questo implica che tutte le strutture di rete sono allocate nello **Stack** (**Non adatta a reti molto grandi**).
+
 - ### Rete
+Il modulo `Network` permette di eseguire la rete dato un determinato input. In particolare `Snn` viene creato da `SnnBuilder` e permette di processare un dato input attraverso il metodo `process()`.
+Come `SnnBuilder`, `Snn` riceve l'input come un vettore statico di inpulsi e produce come output un vettore dinamico di inpulsi. La correttezza dell'input può essere controllata a *compile-time*. 
+- ### Gestione dell'errore
 ## Strutture Principali
 La libreria provvede le seguenti strutture:
 
