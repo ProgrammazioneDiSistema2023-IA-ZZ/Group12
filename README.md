@@ -7,7 +7,8 @@
 - [Organizzazione](#organizzazione)
 - [Strutture Principali](#strutture-principali)
 - [Metodi Principali](#metodi-principali)
-- 
+- [Esempio di Utilizzo](#esempio-di-utilizzo)
+
 ## Descrizione
 ## Membri del Gruppo
 - Andrea Sillano sxxxxxx
@@ -113,3 +114,5 @@ pub struct InfoTable{
 ```
 
 ## Metodi Principali
+
+## Esempio di Utilizzo
