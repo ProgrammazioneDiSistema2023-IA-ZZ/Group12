@@ -114,5 +114,49 @@ pub struct InfoTable{
 ```
 
 ## Metodi Principali
+La libreria contiene i seguenti metodi principali:
+- ### Metodi del Builder
+  - Metodi di `SnnBuilder`:
+    - **new()**:
+    ```rust
+    pub fn new() -> Self
+    ```
+    crea un nuovo `SnnBuilder`
+  
+    - **add_layer()**:
+    ```rust
+    
+    ```
+    - **add_weight()**:
+    ```rust
+    pub fn add_weight<const NUM_NEURONS: usize, const INPUT_DIM: usize >(&mut self, weights:[[f64; INPUT_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N> 
+    ```
+    aggiunge i pesi dal precedente layer al nuovo layer
+  
+    - **add_neurons()**:
+    ```rust
+    pub fn add_neurons<const NUM_NEURONS: usize>(&mut self, neurons: [N; NUM_NEURONS]) -> &mut SnnBuilder<N> 
+    ```
+    aggiunge neuroni al layer corrente
+  
+    - **add_intra_weight()**:
+    ```rust
+    pub fn add_intra_weights<const NUM_NEURONS: usize>(&mut self, intra_weights: [[f64; NUM_NEURONS]; NUM_NEURONS]) -> &mut SnnBuilder<N> 
+    ```
+    aggiunge i pesi tra i vari neuroni dello stesso layer
+    - **build()**:
+    ```rust
+    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>
+    ```
+    costruisce la `SNN` dalle informazioni raccolte fino a quel punto dal `SnnBuilder`
+- ### Metodi della Rete
+  - Metodi di `Snn`:
+    - **process()**:
+    ```rust
+    pub fn process<const SPIKES_DURATION: usize>(&mut self, input_spikes: &[[u8; SNN_INPUT_DIM]; SPIKES_DURATION])
+                                                 -> [[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION] 
+    ```
+    processa gli impulsi di input passati come parametri e ritorna gli impulsi di output della rete
+- ### Metodi della Gestione dell'errore
 
 ## Esempio di Utilizzo
