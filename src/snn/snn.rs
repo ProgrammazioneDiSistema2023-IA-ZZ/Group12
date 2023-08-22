@@ -14,14 +14,16 @@ use rand::Rng;
     - SNN_OUTPUT_DIM: dimensione dell'output della rete, i.e. numero di neuroni nell'ultimo layer
 */
 pub struct SNN<N: Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>{
-    layers: Vec<Arc<Mutex<Layer<N>>>>
+    layers: Vec<Arc<Mutex<Layer<N>>>>,
+    transient_error: Option<(usize, usize,i32, u8)>,//layer, neuron, component, position
 }
 
 impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
     SNN<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM> {
-    pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>) -> Self {
+    pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>, transient_error: Option<(usize, usize,i32, u8)>) -> Self {
         Self {
-            layers
+            layers,
+            transient_error,
         }
     }
 
@@ -37,11 +39,17 @@ impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM
         Ex:
             snn.process(&[[0,1,1], [1,0,1]])  /* 3 neuroni in ingresso, riceventi 2 impulsi ciascuno */
     */
+    //neuron: usize, component: usize, position: u8,
     pub fn process<const SPIKES_DURATION: usize>(&mut self, input_spikes: &[[u8; SNN_INPUT_DIM]; SPIKES_DURATION])
                                                  -> [[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION] {
         /* trasforma in Eventi */
         let input_events = SNN::<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>::to_events(input_spikes);
-
+        if self.transient_error.is_some(){
+            let (layer, neuron, component, position)=self.transient_error.unwrap();
+            let mut rng=rand::thread_rng();
+            let random_instant:u64=rng.gen_range(0..SPIKES_DURATION) as u64;
+            self.layers[layer].lock().unwrap().set_transient_error(neuron,component,position,random_instant);
+        }
         let processor = Processor {};
         let output_events = processor.process_events(self, input_events);
 

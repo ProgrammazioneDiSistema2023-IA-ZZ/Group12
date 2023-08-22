@@ -4,6 +4,7 @@ use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
 use crate::snn::snn::SNN;
 use rand::Rng;
+use rand::rngs::ThreadRng;
 use crate::snn::{error_handling, info_table};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -82,9 +83,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         self
     }
 
-    fn choose_neuron(neurons: &Vec<Vec<N>>) -> (usize,usize){
-        let mut rng = rand::thread_rng();
-
+    fn choose_neuron(neurons: &Vec<Vec<N>>, rng: &mut ThreadRng) -> (usize,usize){
         let n_layers = rng.gen_range(0..neurons.len());
         let n_neuron = rng.gen_range(0..neurons[n_layers].len());
 
@@ -92,56 +91,60 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 
     }
 
-    fn choose_weights(weights: &Vec<Vec<Vec<f64>>>) -> (usize,usize,usize){
+    fn weight_index(weights: &Vec<f64>, rng: &mut ThreadRng) -> usize{
+        rng.gen_range(0..weights.len())
+    }
+    fn handle_errors(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable, transient_error: &mut Option<(usize, usize, i32, u8)>){
+        /** Generazione dell'errore sul componente casuale **/
         let mut rng = rand::thread_rng();
+        if components.len()==0 {return;}
+        let component_index = rng.gen_range(0..components.len());
+        let component = components[component_index];
+        let position: u8 = rng.gen_range(0..64);
+        info_table.add_component(component as usize);
+        info_table.add_error_type(error_type as usize);
+        info_table.add_bit(position as usize);
 
-        let n_layers = rng.gen_range(0..weights.len());
-        let n_weights = rng.gen_range(0..weights[n_layers].len());
-        let n_weight = rng.gen_range(0..weights[n_layers][n_weights].len());
+        let (layer_index, neuron_index) = SnnBuilder::choose_neuron(&self.params.neurons.clone(),&mut rng);
+        info_table.add_layer(layer_index);
+        info_table.add_neuron(neuron_index);
 
-        (n_layers,n_weights, n_weight)
+        /** In base a tipo di errore e componente selezionato, si possono verificare tre casi generali:
+            1- stuck-at-X su parametri costanti (i.e. soglia e pesi): Il bit deve essere settato solo all'inizio
+            2- stuck-at-X su membrana: deve essere garantito il bit ad ogni variazione del valore (i.e. ogni volta che il neurone processa un input)
+            3- transient-bit-flip su qualsiasi componente: valore settato una volta solo, ma ad un istante casuale (verrà controllato dal Processor)
+        **/
 
+        match (component,error_type) {
+            //stuck_at_X on threshold
+            (0,0)|(0,1)=>{error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, position)},
+            //stuck-at-X on membrane
+            (1,0)|(1,1)=>{error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, position)},
+            //stuck-at-X on extra-weights
+            (2,0)|(2,1)=>{
+                let w=&mut self.params.extra_weights[layer_index][neuron_index];
+                let idx=SnnBuilder::<N>::weight_index(w, &mut rng);
+                error_handling::weight_fault(&mut w[idx],error_type,position);}
+            //stuck-at-X on intra-weights
+            (3,0)|(3,1)=>{
+                let w=&mut self.params.intra_weights[layer_index][neuron_index];
+                let idx=SnnBuilder::<N>::weight_index(w, &mut rng);
+                error_handling::weight_fault(&mut w[idx],error_type,position);}
+            //transient error //layer, neuron, component, position
+            (0,2)|(1,2)|(2,2)|(3,2)=>{*transient_error=Some((layer_index,neuron_index,component, position))}
+            (_,_)=>{}
+        }
     }
 
     pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
         if self.params.extra_weights.len() != self.params.neurons.len() || self.params.intra_weights.len() != self.params.neurons.len(){
             panic!("Wrong number bewteen layers!")
         }
-        if components.len() == 0 {
-
-        }
         //Eventualmente fare check su #pesi
 
         let mut layers: Vec<Arc<Mutex<Layer<N>>>> = Vec::new();
-
-
-        /** Generazione dell'errore sul componente casuale **/
-        let mut rng = rand::thread_rng();
-        /** Se il vettore è vuoto allora non ci sono componenti da verificare **/
-        let mut component = -1;
-        if components.len() != 0 {
-            let component_index = rng.gen_range(0..components.len());
-            component = components[component_index];
-            info_table.add_component(component as usize);
-            info_table.add_error_type(error_type as usize);
-        }
-        let (layer_index, neuron_index) = SnnBuilder::choose_neuron(&self.params.neurons.clone());
-        let (layer_index_weight, index_weights, index_weight) = SnnBuilder::<N>::choose_weights(&self.params.extra_weights.clone());
-        let (layer_intra_index_weight, index_intra_weights, index_intra_weight) = SnnBuilder::<N>::choose_weights(&self.params.intra_weights.clone());
-
-        /** Generazione componente guasto **/
-        /** Possibili componenti guasti
-         -- Soglia
-         -- Pesi
-         -- Potenziali
-        **/
-        match component {
-            0 => {info_table.add_layer(layer_index); info_table.add_neuron(neuron_index); error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, info_table)},
-            1 => {info_table.add_layer(layer_index); info_table.add_neuron(neuron_index); error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, info_table)},
-            2 => {info_table.add_layer(layer_index_weight); info_table.add_neuron(index_weights); error_handling::extra_weights_fault(&mut self.params.extra_weights[layer_index_weight][index_weights][index_weight], error_type, info_table)},
-            3 => {info_table.add_layer(layer_intra_index_weight); info_table.add_neuron(index_intra_weights); error_handling::extra_weights_fault(&mut self.params.intra_weights[layer_intra_index_weight][index_intra_weights][index_intra_weight], error_type,info_table )},
-            _ =>{},
-        }
+        let mut transient: Option<(usize, usize,i32, u8)>=None;
+        self.handle_errors(components,error_type,info_table,&mut transient);
 
         let mut n_iter = self.params.neurons.clone().into_iter();
         let mut extra_iter = self.params.extra_weights.clone().into_iter();
@@ -155,7 +158,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
             let new_layer = Layer::new(layer, new_extra_iter, new_intra_iter);
             layers.push(Arc::new(Mutex::new(new_layer)));
         }
-        SNN::<N, {INPUT_DIM }, { OUTPUT_DIM }>::new(layers)
+        SNN::<N, {INPUT_DIM }, { OUTPUT_DIM }>::new(layers, transient)
     }
 
 
