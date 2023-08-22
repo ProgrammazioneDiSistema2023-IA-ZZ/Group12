@@ -93,4 +93,17 @@ pub struct SnnParams<N: Neuron+Clone+Debug+'static>{
 }
 ```
 
+- `InfoTable` rappresenta la struttura necessaria per generare il report sulla resilienza. Immagazzina tutte le informazioni riguardo agli errori generati e come influiscono sulla `SNN` in questione.
+```rust
+pub struct InfoTable{
+  layers: Vec<usize>,
+  neurons: Vec<usize>,
+  components: Vec<usize>,
+  bits: Vec<usize>,
+  error_type: Vec<usize>,
+  accuracy: Vec<f64>,
+  counter: i32
+}
+```
+
 ## Metodi Principali
