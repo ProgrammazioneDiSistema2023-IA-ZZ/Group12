@@ -19,9 +19,9 @@ pub enum ErrorComponent{
 
 #[derive(Debug, Clone)]
 pub struct SnnParams<N: Neuron+ Clone+Debug+'static>{
-    neurons: Vec<Vec<N>>,
-    extra_weights: Vec<Vec<Vec<f64>>>,
-    intra_weights: Vec<Vec<Vec<f64>>>,
+    neurons: Vec<Vec<N>>, /* neuroni per ciascun layer */
+    extra_weights: Vec<Vec<Vec<f64>>>, /* pesi (positivi) tra i vari layer */
+    intra_weights: Vec<Vec<Vec<f64>>>, /* pesi (negativi) all'interno dello stesso layer */
 }
 #[derive(Debug, Clone)]
 pub struct SnnBuilder<N: Neuron+Clone+Debug+'static>{

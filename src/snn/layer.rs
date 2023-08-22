@@ -4,10 +4,10 @@ use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
 
 pub struct Layer<N: Neuron+Clone+'static>{
-    neurons: Vec<N>,
-    weights: Vec<Vec<f64>>,
-    intra_weights: Vec<Vec<f64>>,
-    prev_output: Vec<u8>,
+    neurons: Vec<N>, /* neuroni del layer */
+    weights: Vec<Vec<f64>>, /* pesi tra i neuroni di questo layer con quelli del layer precedente */
+    intra_weights: Vec<Vec<f64>>, /* pesi tra i neuroni dello stesso layer */
+    prev_output: Vec<u8>, /* impulsi di output al precedente istante */
 }
 
 impl<N: Neuron+ Clone+'static> Layer<N> {

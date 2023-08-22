@@ -1,14 +1,15 @@
 use crate::snn::neuron::Neuron;
 #[derive(Debug)]
 pub struct LIFNeuron{
-    v_th: f64,
-    v_rest: f64,
-    v_reset: f64,
+    /* campi costanti */
+    v_th: f64, /* potenziale di soglia */
+    v_rest: f64, /* potenziale di riposo */
+    v_reset: f64, /* potenziale di reset */
     tau: f64,
-    d_t: f64,
-
-    v_mem: f64,
-    t_s: u64
+    d_t: f64, /* intervallo di tempo tra due istanti successivi */
+    /*campi mutabili*/
+    v_mem: f64, /* potenziale di membrana */
+    t_s: u64 /* ultimo istante di tempo in cui ha ricevuto almeno un impulso */
 }
 
 impl LIFNeuron {
