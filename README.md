@@ -22,7 +22,7 @@
 
 ## Struttura del Repository
 - `src/` contiene il codice sorgente  della libreria
-  + `models/` contiene le specifiche implementazioni dei modelli (in questo caso solo `Lif Neuron`)
+  + `models/` contiene le specifiche implementazioni dei modelli (in questo caso solo `LIFNeuron`)
   + `snn/` contiene l'implementazione generica della SNN 
   + 
 ## Organizzazione
@@ -36,6 +36,13 @@ la correttezza della struttura della rete a *compile time*, ma questo implica ch
 Il modulo `Network` permette di eseguire la rete dato un determinato input. In particolare `Snn` viene creato da `SnnBuilder` e permette di processare un dato input attraverso il metodo `process()`.
 Come `SnnBuilder`, `Snn` riceve l'input come un vettore statico di inpulsi e produce come output un vettore dinamico di inpulsi. La correttezza dell'input può essere controllata a *compile-time*. 
 - ### Gestione dell'errore
+Il modulo `Error Handling` permette di simulare uno tra gli errori richiesti sulla rete. All'interno di esso vi è stata inserita un *enum* che specifica il tipo di errore da simulare. Le possibilità offerte dalla libreria sono:
+  - `ErrorType::Stuck0`: simula lo `Stuck-At-0`, ovvero il bit rimane fisso a **0**, anche se richiesto il contrario;
+  - `ErrorType::Stuck1`: simula lo `Stuck-At-1`, ovvero il bit rimane fisso a **1**, anche se richiesto il contrario;
+  - `ErrorType::Flip`: simula il `transient bit flip`, ovvero il valore del bit viene invertito;
+  - `ErrorType::None`: simula il corretto funzionamento della rete, senza nessun errore;
+Tra tali errori, lo `Stuck-At-X` viene applicato forzando il bit al valore definito (**0 oppure 1**) per tutta la durata dell'inferenza mentre il `transient bit flip` ha validità solo in uno specifico istante di tempo ed 
+eventuali nuove scritture non subiscono tale errore.
 ## Strutture Principali
 La libreria provvede le seguenti strutture:
 
@@ -148,7 +155,7 @@ La libreria contiene i seguenti metodi principali:
     ```rust
     pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>
     ```
-    costruisce la `SNN` dalle informazioni raccolte fino a quel punto dal `SnnBuilder`
+    costruisce la `SNN` dalle informazioni raccolte fino a quel punto dal `SnnBuilder`. Il parametro `error_type` serve per forzare un errore specifico all'interno della rete.
 - ### Metodi della Rete
   - Metodi di `Snn`:
     - **process()**:
@@ -158,5 +165,11 @@ La libreria contiene i seguenti metodi principali:
     ```
     processa gli impulsi di input passati come parametri e ritorna gli impulsi di output della rete
 - ### Metodi della Gestione dell'errore
+  - Metodi di `Error Handling`:
+    - **embed_error()**:
+    ```rust
+    fn embed_error(variable:f64, error:ErrorType, info_table: &mut InfoTable)->f64
+    ```
+    calcola il valore di errore di `variable` dopo aver subito un errore di tipo `error`. 
 
 ## Esempio di Utilizzo
