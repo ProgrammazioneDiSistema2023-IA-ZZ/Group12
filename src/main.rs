@@ -91,7 +91,7 @@ fn main(){
     //println!("Params Created!")
 
 }
-fn calculate_accuracy(v1: &[[u8; 2]; 6], v2: &[[u8; 2]; 6]) -> f64 {
+fn calculate_accuracy<const SNN_OUTPUT_DIM: usize, const SPIKES_DURATION: usize>(v1: &[[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION], v2: &[[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION]) -> f64 {
     let total_elements = v1.iter().map(|row| row.len()).sum::<usize>();
     let matching_elements = v1.iter().zip(v2.iter())
         .map(|(row1, row2)| row1.iter().zip(row2.iter()).filter(|&(elem1, elem2)| elem1 == elem2).count())
