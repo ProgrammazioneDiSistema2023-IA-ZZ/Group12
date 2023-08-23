@@ -47,6 +47,9 @@ impl InfoTable {
         self.accuracy.push(acc);
     }
     pub fn print_table(&mut self, ){
+        let max_impact = self.accuracy.clone().into_iter().max_by(|a,b| a.partial_cmp(b).unwrap()).unwrap();
+        let impacted_inferences = 100 as f64 *self.accuracy.clone().into_iter().filter(|&x| x>0.0).count() as f64/self.layers.len() as f64;
+
         let len =  self.layers.len() ;
         let mut table = vec![];
         for n in  0..len{
@@ -63,9 +66,14 @@ impl InfoTable {
         print!("{}", table_display);
         println!("#######################################################");
         println!("# Number of Affected inferences: {}                   #", self.counter);
+        println!("# Max impact on accuracy: {}%                          ", max_impact);
+        println!("# Inferences impacted : {}%                           #", impacted_inferences);
     }
     pub fn print_table_file(&mut self, file: &mut File)->Result<(),Error>{
         let len =  self.layers.len() ;
+        let max_impact = self.accuracy.clone().into_iter().max_by(|a,b| a.partial_cmp(b).unwrap()).unwrap();
+        let impacted_inferences = 100 as f64 *self.accuracy.clone().into_iter().filter(|&x| x>0.0).count() as f64/self.layers.len() as f64;
+
         writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+")?;
         writeln!(file,"| Layer | Neuron |  Component  | Bit |    Error   | Impact On Accuracy |")?;
         writeln!(file,"+-------+--------+-------------+-----+------------+--------------------+")?;
@@ -81,6 +89,8 @@ impl InfoTable {
 
         }
         writeln!(file,"# Number of Affected inferences: {}                   #", self.counter)?;
+        writeln!(file,"# Max impact on accuracy: {}%                          ", max_impact)?;
+        writeln!(file,"# Inferences impacted : {}%                           #", impacted_inferences)?;
         Ok(())
     }
 
