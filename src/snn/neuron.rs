@@ -1,3 +1,4 @@
+/// Tratto generico che rappresenta il neurone di una rete
 pub trait Neuron: Send{
 /// Funzione per calcolare il nuovo potenziale di membrana del neurone;
 /// Ritorna un segnale binario 0/1
