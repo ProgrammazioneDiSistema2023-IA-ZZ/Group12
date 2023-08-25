@@ -46,30 +46,25 @@ fn flip_bit(value:u64, position:u8)->u64{
 }
 
 pub fn threshold_fault<N: Neuron+Clone+'static>(neuron: &mut N, error_type: i32, position:u8){
-    println!("Old Threshold -> {}", neuron.get_th());
+
     let new_threshold = embed_error(neuron.get_th(), ERROR_TABLE[error_type as usize], position);
 
     neuron.set_th(new_threshold);
-    println!("New Threshold -> {}", neuron.get_th());
 
 }
 
 pub fn membrane_fault<N: Neuron+Clone+'static>(neuron: &mut N, error_type: i32, position: u8){
     match error_type {
         0|1=>{neuron.set_membrane_error(error_type as u8,position);},
-        2=>{println!("Old membrane -> {}", neuron.get_mem());
-            let new_mem = embed_error(neuron.get_mem(), ERROR_TABLE[error_type as usize], position);
-            neuron.set_mem(new_mem);
-            println!("New membrane (transient)-> {}", neuron.get_mem());},
+        2=>{let new_mem = embed_error(neuron.get_mem(), ERROR_TABLE[error_type as usize], position);
+            neuron.set_mem(new_mem);},
         _=>{}
     }
 }
 
 pub fn weight_fault(weight: &mut f64, error_type: i32, position: u8){
-    println!("Old Weight -> {}", weight);
 
     let new_weight = embed_error(*weight, ERROR_TABLE[error_type as usize], position);
 
     *weight = new_weight;
-    println!("New Weight -> {}", weight);
 }

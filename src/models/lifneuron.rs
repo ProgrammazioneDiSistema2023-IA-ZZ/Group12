@@ -61,13 +61,11 @@ impl LIFNeuron {
         if self.membrane_error.is_none(){return;}
         let error=self.membrane_error.as_ref().unwrap();
         let mask=1u64<<error.position;
-        println!("Old Membrane -> {}", self.v_mem);
         match error.error_type {
             0 => { self.v_mem = f64::from_bits(self.v_mem.to_bits() & !mask) },
             1=> { self.v_mem = f64::from_bits(self.v_mem.to_bits() | mask) },
             _=>{}
         }
-        println!("New Membrane -> {}", self.v_mem);
     }
 }
 

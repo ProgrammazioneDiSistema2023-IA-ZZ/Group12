@@ -60,8 +60,7 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
         if self.error.is_none() { return; }
         let transient_error= self.error.as_ref().unwrap();
         if transient_error.time !=current_instant { return; }
-        println!("Transient error at time: {}, neuron: {}, component: {}",
-                 current_instant, transient_error.neuron, transient_error.component);
+
         let n=&mut self.neurons[transient_error.neuron];
         let position=transient_error.position;
         match transient_error.component {
