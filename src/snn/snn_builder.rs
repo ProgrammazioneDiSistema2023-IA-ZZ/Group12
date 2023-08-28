@@ -10,6 +10,7 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 use crate::snn::info_table::InfoTable;
 
+/// Enumeratore che identifica il tipo di errore da inserire nella rete
 #[derive(EnumIter)]
 pub enum ErrorComponent{
     ThresholdError,
@@ -17,13 +18,20 @@ pub enum ErrorComponent{
     ExtraWeightsError,
     MembraneError
 }
-
+/// Struttura che contiene i parametri della rete che si sta cotruendo
 #[derive(Debug, Clone)]
 pub struct SnnParams<N: Neuron+ Clone+Debug+'static>{
-    neurons: Vec<Vec<N>>, /* neuroni per ciascun layer */
-    extra_weights: Vec<Vec<Vec<f64>>>, /* pesi (positivi) tra i vari layer */
-    intra_weights: Vec<Vec<Vec<f64>>>, /* pesi (negativi) all'interno dello stesso layer */
+    /// Vettori di neuroni per ciascun layer
+    neurons: Vec<Vec<N>>,
+    /// Vettori di pesi tra i neuroni di layer differenti;
+    /// - il primo indice indica il layer
+    /// - il secondo indice indica il neurone a cui arriva il peso
+    /// - il terzo indice il neurone del layer precedente da cui arriva il peso
+    extra_weights: Vec<Vec<Vec<f64>>>,
+    /// Vettori di pesi tra i neuroni dello stesso layer
+    intra_weights: Vec<Vec<Vec<f64>>>,
 }
+/// Struttura per creare la rete neurale aggiornando i suoi parametri
 #[derive(Debug, Clone)]
 pub struct SnnBuilder<N: Neuron+Clone+Debug+'static>{
     params: SnnParams<N>
@@ -49,8 +57,10 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         self
     }
 
-
-    pub fn add_weight<const NUM_NEURONS: usize, const INPUT_DIM: usize >(&mut self, weights:[[f64; INPUT_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N> {
+/// Aggiunge un nuovo layer di pesi esterni e controlla che siano tutti pesi positivi
+/// # Argomenti
+/// * `weights` - vettori di pesi tra i neuroni dell'ultimo layer con i neuroni del layer precedente
+    pub fn add_weight<const NUM_NEURONS: usize, const PREVIOUS_DIM: usize >(&mut self, weights:[[f64; PREVIOUS_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N> {
         let mut new_weights = <Vec<Vec<f64>>>::new();
 
         for n_weight in &weights{
@@ -64,10 +74,14 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         self.params.extra_weights.push(new_weights);
         self
     }
+/// Aggiunge un nuovo layer di neuroni
     pub fn add_neurons<const NUM_NEURONS: usize>(&mut self, neurons: [N; NUM_NEURONS]) -> &mut SnnBuilder<N> {
         self.params.neurons.push(Vec::from(neurons));
         self
     }
+/// Aggiunge un nuovo layer di pesi interni e controlla che siano tutti pesi negativi
+/// # Argomenti
+/// * `intra_weights` - vettori di pesi tra i neuroni
     pub fn add_intra_weights<const NUM_NEURONS: usize>(&mut self, intra_weights: [[f64; NUM_NEURONS]; NUM_NEURONS]) -> &mut SnnBuilder<N> {
         let mut new_weights = <Vec<Vec<f64>>>::new();
 
@@ -82,23 +96,37 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         self.params.intra_weights.push(new_weights);
         self
     }
-
+/// Funzione per la scelta casuale di un layer e di un neurone all'interno di quest'ultimo.
+/// Ritorna una tupla contenente gli indici di layer e neurone
     fn choose_neuron(neurons: &Vec<Vec<N>>, rng: &mut ThreadRng) -> (usize,usize){
         let n_layers = rng.gen_range(0..neurons.len());
         let n_neuron = rng.gen_range(0..neurons[n_layers].len());
 
         (n_layers,n_neuron)
-
     }
-
+/// Funzione che ritorna un indice casuale in un vettore di pesi
     fn weight_index(weights: &Vec<f64>, rng: &mut ThreadRng) -> usize{
         rng.gen_range(0..weights.len())
     }
+/// Funzione per gestire l'iniezione di errori all'interno della rete
+/// # Argomenti
+/// * `components` - lista di valori per indicare i possibili componenti in cui iniettare l'errore.
+///   Possibili valori:
+///     - `0` -> Potenziale di soglia
+///     - `1` -> Potenziale di membrana
+///     - `2` -> Pesi esterni
+///     - `3` -> Pesi interni
+/// * `error_type` - tipo di errore da iniettare nella rete:
+///     - `0` -> Stuck-at-0
+///     - `1` -> Stuck-at-1
+///     - `2` -> Transient bit-flip
+/// * `info_table` - struttura per salvare le informazioni di tutti gli errori inseriti
+/// * `transient_error` - variabile opzionale per salvare le informazioni temporanee di un errore transitorio
     fn handle_errors(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable, transient_error: &mut Option<(usize, usize, i32, u8)>){
-        /** Generazione dell'errore sul componente casuale **/
         let mut rng = rand::thread_rng();
         if components.len()==0 {return;}
         let component_index = rng.gen_range(0..components.len());
+        /* scelta casuale di uno dei componenti */
         let component = components[component_index];
         let position: u8 = rng.gen_range(0..64);
         info_table.add_component(component as usize);
@@ -109,11 +137,11 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         info_table.add_layer(layer_index);
         info_table.add_neuron(neuron_index);
 
-        /** In base a tipo di errore e componente selezionato, si possono verificare tre casi generali:
+        /* In base al tipo di errore e componente selezionato, si possono verificare tre casi generali:
             1- stuck-at-X su parametri costanti (i.e. soglia e pesi): Il bit deve essere settato solo all'inizio
-            2- stuck-at-X su membrana: deve essere garantito il bit ad ogni variazione del valore (i.e. ogni volta che il neurone processa un input)
-            3- transient-bit-flip su qualsiasi componente: valore settato una volta solo, ma ad un istante casuale (verrà controllato dal Processor)
-        **/
+            2- stuck-at-X su membrana: deve essere garantito X ad ogni variazione del valore (i.e. ogni volta che il neurone processa un input)
+            3- transient-bit-flip su qualsiasi componente: valore settato una volta sola, ma ad un istante casuale (verrà iniettato da Snn.process())
+        */
 
         match (component,error_type) {
             //stuck_at_X on threshold
@@ -130,12 +158,24 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
                 let w=&mut self.params.intra_weights[layer_index][neuron_index];
                 let idx=SnnBuilder::<N>::weight_index(w, &mut rng);
                 error_handling::weight_fault(&mut w[idx],error_type,position);}
-            //transient error //layer, neuron, component, position
+            //transient error
             (0,2)|(1,2)|(2,2)|(3,2)=>{*transient_error=Some((layer_index,neuron_index,component, position))}
             (_,_)=>{}
         }
     }
-
+/// Funzione che crea la rete SNN dai parametri di costruzione
+/// # Argomenti
+/// * `components` - lista di valori per indicare i possibili componenti in cui iniettare l'errore.
+///   Possibili valori:
+///     - `0` -> Potenziale di soglia
+///     - `1` -> Potenziale di membrana
+///     - `2` -> Pesi esterni
+///     - `3` -> Pesi interni
+/// * `error_type` - tipo di errore da iniettare nella rete:
+///     - `0` -> Stuck-at-0
+///     - `1` -> Stuck-at-1
+///     - `2` -> Transient bit-flip
+/// * `info_table` - struttura per salvare le informazioni di tutti gli errori inseriti
     pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
         if self.params.extra_weights.len() != self.params.neurons.len() || self.params.intra_weights.len() != self.params.neurons.len(){
             panic!("Wrong number bewteen layers!")
@@ -154,7 +194,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
             let new_extra_iter = extra_iter.next().unwrap();
             let new_intra_iter = intra_iter.next().unwrap();
 
-            /* create and save the new layer */
+            /* creazione di un nuovo layer */
             let new_layer = Layer::new(layer, new_extra_iter, new_intra_iter);
             layers.push(Arc::new(Mutex::new(new_layer)));
         }
