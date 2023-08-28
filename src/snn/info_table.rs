@@ -3,6 +3,8 @@ use std::fs::File;
 use std::io::Write;
 use cli_table::{format::Justify, print_stdout, Cell, Style, Table};
 use strip_ansi_escapes::strip;
+/// Struttura per salvare le informazioni di tutti gli errori inseriti nella rete e, per ogni inserimento,
+/// l'accuratezza dell'output della rete con l'errore
 #[derive(Debug)]
 pub struct InfoTable {
     layers: Vec<usize>,
@@ -26,27 +28,34 @@ impl InfoTable {
             counter: 0,
         }
     }
+    /// Aggiunge l'indice del layer in cui viene iniettato l'errore
     pub fn add_layer(&mut self, layer_index: usize) {
         self.layers.push(layer_index);
     }
+    /// Aggiunge l'indice del neurone in cui viene iniettato l'errore
     pub fn add_neuron(&mut self, neuron_index: usize) {
         self.neurons.push(neuron_index);
     }
+    /// Aggiunge il componente in cui viene iniettato l'errore
     pub fn add_component(&mut self, component_index: usize) {
         self.components.push(component_index);
     }
+    /// Aggiunge l'indice del bit in cui viene iniettato l'errore
     pub fn add_bit(&mut self, bit_index: usize) {
         self.bits.push(bit_index);
     }
+    /// Aggiunge il tipo di errore che viene iniettato
     pub fn add_error_type(&mut self, error_type: usize) {
         self.error_type.push(error_type);
     }
+    /// Aggiunge accuratezza dell'output
     pub fn add_output(&mut self, acc: f64) {
         if acc != 0.0 {
             self.counter += 1;
         }
         self.accuracy.push(acc);
     }
+    /// Stampa su file una tabella con tutte le informazioni sugli errori
     pub fn print_table(&mut self, file: &mut File) -> Result<(), Error> {
         let max_impact = self.accuracy.clone().into_iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
         let impacted_inferences = 100 as f64 * self.accuracy.clone().into_iter().filter(|&x| x > 0.0).count() as f64 / self.layers.len() as f64;
