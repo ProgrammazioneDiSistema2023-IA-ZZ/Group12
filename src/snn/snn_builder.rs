@@ -5,13 +5,10 @@ use crate::snn::neuron::Neuron;
 use crate::snn::snn::SNN;
 use rand::Rng;
 use rand::rngs::ThreadRng;
-use crate::snn::{error_handling, info_table};
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use crate::snn::error_handling;
 use crate::snn::info_table::InfoTable;
 
 /// Enumeratore che identifica il tipo di errore da inserire nella rete
-#[derive(EnumIter)]
 pub enum ErrorComponent{
     ThresholdError,
     IntraWeightsError,

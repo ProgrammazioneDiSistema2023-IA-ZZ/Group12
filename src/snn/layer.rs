@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use std::sync::mpsc::{Receiver, Sender};
 use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
@@ -122,11 +121,10 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
 /// * `layer_output_tx` - **Sender** del channel con il layer successivo, invia l'Evento rappresentante gli impulsi di output
     pub fn process(&mut self, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
 
-        /** Prendiamo l'output del layer precedente **/
+        /* Prendiamo l'output del layer precedente */
         while let Ok(input_spike) = layer_input_rc.recv() {
             let instant = input_spike.ts;
             let mut output_spikes = Vec::<u8>::with_capacity(self.neurons.len());
-            let mut at_least_one_spike = false;
             /* controlliamo che non vi sia un transient bit-flip in questo determinato istante */
             self.check_transient_error(instant);
 

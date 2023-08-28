@@ -1,7 +1,4 @@
-use rand::Rng;
-use crate::snn;
 use crate::snn::error_handling::ErrorType::{Flip, Stuck0, Stuck1};
-use crate::snn::info_table::InfoTable;
 use crate::snn::neuron::Neuron;
 
 #[derive(Copy, Clone)]

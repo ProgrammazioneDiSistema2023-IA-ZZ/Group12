@@ -3,7 +3,6 @@ use crate::snn::snn_builder::SnnBuilder;
 use crate::snn::info_table::InfoTable;
 use crate::snn::menu_handler;
 use std::fs::File;
-use std::io::{Write, Result};
 mod models;
 mod snn;
 
@@ -19,7 +18,7 @@ fn main(){
     menu_handler::print_configuration(&components, error_index, n_faults);
 
     let mut binding = SnnBuilder::new();
-    let mut snn = binding.add_layer().add_weight([
+    let builder = binding.add_layer().add_weight([
         [0.1, 0.2],
         [0.3, 0.4],
         [0.5, 0.6]
@@ -66,14 +65,14 @@ fn main(){
         [-0.10, 0.0]
     ]);
 
-    let mut input = [[0,1,1], [0,0,1], [1,1,1], [1,0,0], [0,0,1], [0,1,0]];
-    /** SNN WITHOUT ANY ERROR**/
-    let mut snn_0_error = snn.clone().build::<3,2>(&Vec::new(), -1, &mut table);
+    let input = [[0,1,1], [0,0,1], [1,1,1], [1,0,0], [0,0,1], [0,1,0]];
+    /* SNN WITHOUT ANY ERROR */
+    let mut snn_0_error = builder.clone().build::<3,2>(&Vec::new(), -1, &mut table);
     let snn_result_0_error= snn_0_error.process(&input);
-    /** SNN WITH ERRORS**/
+    /* SNN WITH ERRORS */
     for _ in 0..n_faults {
-        let mut SNN = snn.clone().build::<3,2>(&components, error_index, &mut table);
-        let snn_result= SNN.process(&input);
+        let mut snn = builder.clone().build::<3,2>(&components, error_index, &mut table);
+        let snn_result= snn.process(&input);
         let acc = calculate_accuracy(&snn_result_0_error, &snn_result);
         table.add_output((1.0-acc)*100.0);
         println!("{:?}", snn_result);
