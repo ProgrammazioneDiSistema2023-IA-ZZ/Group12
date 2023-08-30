@@ -55,13 +55,6 @@ impl Processor {
         let net_output_rc = layer_rc;
 
         for evento in spikes {
-            /*  In condizioni normali un Evento senza impulsi (i.e. vettore di soli 0)
-                non può produrre impulsi in output e non c'è bisogno che venga processato.
-                Dal momento che la nostra rete può presentare errori che comportino
-                un funzionamento anomalo, è corretto che vengano processati tutti gli eventi */
-            /*if evento.spikes.iter().all(|spike|{*spike == 0u8}){
-                continue;
-            }*/
 
             let instant = evento.ts;
 

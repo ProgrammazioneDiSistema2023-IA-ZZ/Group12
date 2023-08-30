@@ -78,15 +78,8 @@ fn main(){
         println!("{:?}", snn_result);
     }
 
-
-    // let mut line = String::new();
-    // std::io::stdin().read_line(&mut line).unwrap();
-    // //args.name = stringa in input
-    // println!("STRINGA: {}", line);
-
     menu_handler::write_configuration_to_file(&mut file, &components, error_index, n_faults).expect("Impossible to create file!");
     table.print_table(&mut file).expect("Unable To write Statics");
-    //println!("Params Created!")
 
 }
 fn calculate_accuracy<const SNN_OUTPUT_DIM: usize, const SPIKES_DURATION: usize>(v1: &[[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION], v2: &[[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION]) -> f64 {
