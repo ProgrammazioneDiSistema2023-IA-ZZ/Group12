@@ -6,14 +6,15 @@ use strip_ansi_escapes::strip;
 /// Struttura per salvare le informazioni di tutti gli errori inseriti nella rete e, per ogni inserimento,
 /// l'accuratezza dell'output della rete con l'errore
 #[derive(Debug)]
-pub struct InfoTable {
+pub struct InfoTable{
     layers: Vec<usize>,
     neurons: Vec<usize>,
     components: Vec<usize>,
     bits: Vec<usize>,
     error_type: Vec<usize>,
     accuracy: Vec<f64>,
-    counter: i32
+    counter: i32,
+    error_input: Vec<(i32,i32)>
 }
 
 impl InfoTable {
@@ -26,6 +27,7 @@ impl InfoTable {
             error_type: vec![],
             accuracy: vec![],
             counter: 0,
+            error_input: vec![],
         }
     }
     /// Aggiunge l'indice del layer in cui viene iniettato l'errore
@@ -55,6 +57,18 @@ impl InfoTable {
         }
         self.accuracy.push(acc);
     }
+    pub fn add_error_inputs(&mut self, input1: i32, input2: i32) {
+        if input1 == 3 && input2 ==  3 {
+            self.error_input.push((0,0));
+        }else if input1 != 3 && input2 ==  3 {
+            self.error_input.push((1,0));
+        }else if input1 == 3 && input2 !=  3{
+            self.error_input.push((0,1));
+        }else if input1 != 3 && input2 !=  3{
+            self.error_input.push((1,1));
+        }
+
+    }
     /// Stampa su file una tabella con tutte le informazioni sugli errori
     pub fn print_table(&mut self, file: &mut File) -> Result<(), Error> {
         let max_impact = self.accuracy.clone().into_iter().max_by(|a, b| a.partial_cmp(b).unwrap()).unwrap();
@@ -63,11 +77,23 @@ impl InfoTable {
         let len = self.layers.len();
         let mut table = vec![];
         for n in 0..len {
-            table.push(vec![self.layers[n].cell().justify(Justify::Right),
-                            self.neurons[n].cell().justify(Justify::Right),
-                            from_index_to_str_component(self.components[n]).cell().justify(Justify::Right),
+            let mut layer= self.layers[n].cell().justify(Justify::Right);
+            let mut neuron = self.neurons[n].cell().justify(Justify::Right);
+            if  self.components[n] == 4 || self.components[n] == 5 ||  self.components[n] == 6 || self.components[n] == 7 {
+               layer = "/".cell().justify(Justify::Right);
+                neuron="/".cell().justify(Justify::Right);
+            }
+            let mut input = from_index_to_str_component(self.components[n]).cell().justify(Justify::Left);
+            if self.components[n] == 5 || self.components[n] == 7{
+                input =(from_index_to_str_component(self.components[n]).to_string() +" - ("+ &*self.error_input[n].0.to_string() +","+ &*self.error_input[n].1.to_string() +")").cell().justify(Justify::Left);
+
+            }
+
+            table.push(vec![layer,
+                            neuron,
+                            input,
                             self.bits[n].cell().justify(Justify::Right),
-                            from_index_to_str_error(self.error_type[n]).cell().justify(Justify::Right),
+                            from_index_to_str_error(self.error_type[n] ).cell().justify(Justify::Left),
                             (self.accuracy[n].to_string() + "%").cell().justify(Justify::Right)
             ])
         }
@@ -102,6 +128,10 @@ fn from_index_to_str_component(index: usize) -> &'static str {
         1=>"Membrane",
         2=>"Extra Weight",
         3=>"Intra Weight",
+        4=>"Adder Output",
+        5=>"Adder Input",
+        6=>"Multiplier Output",
+        7=>"Multiplier Input",
         _ => "None"
     }
 }

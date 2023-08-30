@@ -158,34 +158,59 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         info_table.add_layer(layer_index);
         info_table.add_neuron(neuron_index);
 
+
         /* In base al tipo di errore e componente selezionato, si possono verificare tre casi generali:
             1- stuck-at-X su parametri costanti (i.e. soglia e pesi): Il bit deve essere settato solo all'inizio
             2- stuck-at-X su membrana: deve essere garantito X ad ogni variazione del valore (i.e. ogni volta che il neurone processa un input)
             3- transient-bit-flip su qualsiasi componente: valore settato una volta sola, ma ad un istante casuale (verrà iniettato da Snn.process())
         */
         let (err_input1, err_input2) = SnnBuilder::<N>::generate_input_error(&mut rng, error_type);
+        info_table.add_error_inputs(err_input1,err_input2);
         match (component,error_type) {
             //stuck_at_X on threshold
-            (0,0)|(0,1)=>{error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, position)},
+            (0,0)|(0,1)=>{
+                error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, position);
+
+            },
             //stuck-at-X on membrane
-            (1,0)|(1,1)=>{error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, position)},
+            (1,0)|(1,1)=>{
+                error_handling::membrane_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, position);
+
+            },
             //stuck-at-X on extra-weights
             (2,0)|(2,1)=>{
                 let w=&mut self.params.extra_weights[layer_index][neuron_index];
                 let idx=SnnBuilder::<N>::weight_index(w, &mut rng);
-                error_handling::weight_fault(&mut w[idx],error_type,position);}
+                error_handling::weight_fault(&mut w[idx],error_type,position);
+
+            },
             //stuck-at-X on intra-weights
             (3,0)|(3,1)=>{
                 let w=&mut self.params.intra_weights[layer_index][neuron_index];
                 let idx=SnnBuilder::<N>::weight_index(w, &mut rng);
-                error_handling::weight_fault(&mut w[idx],error_type,position);}
-            //transient error
-            (0,2)|(1,2)|(2,2)|(3,2)|(4,2)|(5,2)|(6,2)|(7,2)=>{*transient_error=Some((layer_index,neuron_index,component, position,(err_input1,err_input2)))}
+                error_handling::weight_fault(&mut w[idx],error_type,position);
 
-            (4,0)|(4,1)=>{self.adder.set_params(error_type, position)}
-            (5,0)|(5,1)=>{self.adder.set_params_input(error_type,position,err_input1,err_input2)}
-            (6,0)|(6,1)=>{self.mult.set_params(error_type,position)}
-            (7,0)|(7,1)=>{self.mult.set_params_input(error_type,position,err_input1,err_input2)}
+            },
+            //transient error
+            (0,2)|(1,2)|(2,2)|(3,2)|(4,2)|(5,2)|(6,2)|(7,2)=> {
+                *transient_error = Some((layer_index, neuron_index, component, position, (err_input1, err_input2)));
+            },
+
+            (4,0)|(4,1)=>{self.adder.set_params(error_type, position);
+
+            }
+            (5,0)|(5,1)=>{
+                self.adder.set_params_input(error_type,position,err_input1,err_input2);
+
+            },
+            (6,0)|(6,1)=>{
+                self.mult.set_params(error_type,position);
+
+            },
+            (7,0)|(7,1)=>{
+                self.mult.set_params_input(error_type,position,err_input1,err_input2);
+
+            }
             (_,_)=>{}
         }
     }
