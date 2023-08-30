@@ -19,6 +19,10 @@ pub fn print_components_menu(componets: &mut Vec<i32>){
     println!("#         1 => Membrane                               #");
     println!("#         2 => Extra Weights                          #");
     println!("#         3 => Intra Weights                          #");
+    println!("#         4 => Adder Output                           #");
+    println!("#         5 => Adder Input                            #");
+    println!("#         6 => Multiplier Output                      #");
+    println!("#         7 => Multiplier Input                       #");
     println!("#                                                     #");
     println!("#######################################################");
     println!("Insert digit to select component to verify! - (-1 to end components selection)");
@@ -42,7 +46,7 @@ pub fn print_components_menu(componets: &mut Vec<i32>){
 
         match trimmed_input.parse::<i32>() {
             Ok(number) => {
-                if number<0 || number>3{
+                if number<0 || number>7{
                     println!("Invalid component digit, try another one!");
                 }else if componets.contains(&number){
                     println!("Components already inserted!, try another one!");
@@ -127,6 +131,10 @@ pub fn print_configuration(components: &Vec<i32>, error_index:  i32, n_faults: i
             1 => components_string += "\n#             -Membrane                               #",
             2 => components_string += "\n#             -Extra Weights                          #",
             3 => components_string += "\n#             -Intra Weights                          #",
+            4 => components_string += "\n#             -Adder Output                           #",
+            5 => components_string += "\n#             -Adder Input                            #",
+            6 => components_string += "\n#             -Multiplier Output                      #",
+            7 => components_string += "\n#             -Multiplier Input                       #",
             _ => components_string += "\n#             -None                                   #",
         }
     }
@@ -158,6 +166,10 @@ pub fn write_configuration_to_file(file: &mut File, components: &Vec<i32>, error
             1 => components_string += "\n#             -Membrane                               #",
             2 => components_string += "\n#             -Extra Weights                          #",
             3 => components_string += "\n#             -Intra Weights                          #",
+            4 => components_string += "\n#             -Adder Output                           #",
+            5 => components_string += "\n#             -Adder Input                            #",
+            6 => components_string += "\n#             -Multiplier Output                      #",
+            7 => components_string += "\n#             -Multiplier Input                       #",
             _ => components_string += "\n#             -None                                   #",
         }
     }
@@ -184,9 +196,6 @@ pub fn write_configuration_to_file(file: &mut File, components: &Vec<i32>, error
     writeln!(file, "#             {}                                      #", n_faults)?;
     writeln!(file, "#                                                     #")?;
     writeln!(file, "#######################################################")?;
-
-
-
 
 
     Ok(())

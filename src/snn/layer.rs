@@ -3,6 +3,8 @@ use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
 use crate::snn::error_handling;
 use rand::Rng;
+use crate::snn::components::{Adder, Multiplier};
+
 /// Struttura che rappresenta un errore transitorio bit-flip su un bit di un componente
 struct TransientError{
 /// Indice del neurone su cui è presente l'errore
@@ -119,7 +121,7 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
 /// # Argomenti
 /// * `layer_input_rc` - **Receiver** del channel con il layer precedente, attende la ricezione dell'Evento rappresentante gli impulsi in input
 /// * `layer_output_tx` - **Sender** del channel con il layer successivo, invia l'Evento rappresentante gli impulsi di output
-    pub fn process(&mut self, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
+    pub fn process(&mut self, adder:Adder, multiplier: Multiplier, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
 
         /* Prendiamo l'output del layer precedente */
         while let Ok(input_spike) = layer_input_rc.recv() {
@@ -146,7 +148,7 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
                     }
                 }
                 /* Calcoliamo il potenziale di membrana e l'output del neurone */
-                let neuron_spike = neuron.update_v_mem(instant,intra_weights_sum, extra_weights_sum);
+                let neuron_spike = neuron.update_v_mem(instant,intra_weights_sum, extra_weights_sum, adder.clone(), multiplier.clone());
                 /* Salvataggio dell'output del neurone nel vettore contenente l'output totale del layer */
                 output_spikes.push(neuron_spike);
             }

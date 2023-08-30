@@ -6,6 +6,7 @@ pub mod snn_builder; /*privato */
 mod error_handling;
 pub(crate) mod info_table;
 pub mod menu_handler;
+pub mod components;
 
 
 /// Struttura che rappresenta gli impulsi scambiati tra i layer della rete

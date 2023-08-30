@@ -2,6 +2,7 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use std::thread;
 use std::thread::JoinHandle;
+use crate::snn::components::{Adder, Multiplier};
 use crate::snn::Evento;
 use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
@@ -19,7 +20,7 @@ impl Processor {
 /// * `snn` - rete neurale che deve processare gli impulsi
 /// * `spikes` - vettore degli Eventi in input; ogni Evento un vettore di impulsi in ingresso ad un determinato istante
     pub fn process_events<'a, N: Neuron+Clone+'static, S: IntoIterator<Item=&'a mut Arc<Mutex<Layer<N>>>>>
-        (self, snn: S, spikes: Vec<Evento>) -> Vec<Evento>{
+        (self, snn: S, spikes: Vec<Evento>, adder:Adder, mult: Multiplier) -> Vec<Evento>{
         /* Creiamo la pool di tutti i thread */
          let mut threads  = Vec::<JoinHandle<()>>::new();
 
@@ -41,7 +42,7 @@ impl Processor {
                 /* Blocchiamo il layer in considerazione */
                 let mut layer = layer_ref.lock().unwrap();
                 /* Eseguiamo il compito del layer */
-                layer.process(layer_rc, layer_tx);
+                layer.process(adder.clone(),mult.clone(),layer_rc, layer_tx);
             });
             /* Inseriamo il thread all'interno del vettore con tutti i thread creati */
             threads.push(thread);

@@ -91,3 +91,19 @@ pub fn weight_fault(weight: &mut f64, error_type: i32, position: u8){
 
     *weight = new_weight;
 }
+pub fn adder_fault(sum: &mut f64, error_type: i32, position: u8){
+    let new_sum = embed_error(*sum, ERROR_TABLE[error_type as usize], position);
+    *sum = new_sum;
+}
+pub fn adder_fault_input(input: &mut f64, error_type: i32, position: u8){
+    let new_input = embed_error(*input, ERROR_TABLE[error_type as usize], position);
+    *input = new_input;
+}
+pub fn mult_fault(sum: &mut f64, error_type: i32, position: u8){
+    let new_sum = embed_error(*sum, ERROR_TABLE[error_type as usize], position);
+    *sum = new_sum;
+}
+pub fn mult_fault_input(input: &mut f64, error_type: i32, position: u8){
+    let new_input = embed_error(*input, ERROR_TABLE[error_type as usize], position);
+    *input = new_input;
+}

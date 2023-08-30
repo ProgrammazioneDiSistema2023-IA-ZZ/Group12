@@ -7,13 +7,15 @@ use rand::Rng;
 use rand::rngs::ThreadRng;
 use crate::snn::error_handling;
 use crate::snn::info_table::InfoTable;
+use crate::snn::components::{Adder, Multiplier};
 
 /// Enumeratore che identifica il tipo di errore da inserire nella rete
 pub enum ErrorComponent{
     ThresholdError,
     IntraWeightsError,
     ExtraWeightsError,
-    MembraneError
+    MembraneError,
+    AdderOutputError
 }
 /// Struttura che contiene i parametri della rete che si sta cotruendo
 #[derive(Debug, Clone)]
@@ -31,7 +33,9 @@ pub struct SnnParams<N: Neuron+ Clone+Debug+'static>{
 /// Struttura per creare la rete neurale aggiornando i suoi parametri
 #[derive(Debug, Clone)]
 pub struct SnnBuilder<N: Neuron+Clone+Debug+'static>{
-    params: SnnParams<N>
+    params: SnnParams<N>,
+    adder: Adder,
+    mult: Multiplier
 }
 
 impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
@@ -42,7 +46,9 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
                 neurons: vec![],
                 extra_weights: vec![],
                 intra_weights: vec![],
-            }
+            },
+            adder: Adder::new(3,0),
+            mult: Multiplier::new(3,0),
         }
     }
     pub fn get_params(&self) -> SnnParams<N> {
@@ -105,6 +111,23 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
     fn weight_index(weights: &Vec<f64>, rng: &mut ThreadRng) -> usize{
         rng.gen_range(0..weights.len())
     }
+    fn generate_input_error(rng: &mut ThreadRng, error_type:i32)->(i32,i32){
+        let index = rng.gen_range(0..3);
+        match index{
+            0=>{
+                return (error_type, 3);
+            }
+            1=>{
+                return ( 3,error_type);
+            }
+            2=>{
+                return ( error_type,error_type);
+            }
+            _ => {(3,3)}
+        }
+    }
+
+
 /// Funzione per gestire l'iniezione di errori all'interno della rete
 /// # Argomenti
 /// * `components` - lista di valori per indicare i possibili componenti in cui iniettare l'errore.
@@ -126,6 +149,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         /* scelta casuale di uno dei componenti */
         let component = components[component_index];
         let position: u8 = rng.gen_range(0..64);
+
         info_table.add_component(component as usize);
         info_table.add_error_type(error_type as usize);
         info_table.add_bit(position as usize);
@@ -139,7 +163,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
             2- stuck-at-X su membrana: deve essere garantito X ad ogni variazione del valore (i.e. ogni volta che il neurone processa un input)
             3- transient-bit-flip su qualsiasi componente: valore settato una volta sola, ma ad un istante casuale (verrà iniettato da Snn.process())
         */
-
+        let (err_input1, err_input2) = SnnBuilder::<N>::generate_input_error(&mut rng, error_type);
         match (component,error_type) {
             //stuck_at_X on threshold
             (0,0)|(0,1)=>{error_handling::threshold_fault(&mut self.params.neurons[layer_index][neuron_index], error_type, position)},
@@ -157,6 +181,11 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
                 error_handling::weight_fault(&mut w[idx],error_type,position);}
             //transient error
             (0,2)|(1,2)|(2,2)|(3,2)=>{*transient_error=Some((layer_index,neuron_index,component, position))}
+
+            (4,0)|(4,1)=>{self.adder.set_params(error_type, position)}
+            (5,0)|(5,1)=>{self.adder.set_params_input(error_type,position,err_input1,err_input2)}
+            (6,0)|(6,1)=>{self.mult.set_params(error_type,position)}
+            (7,0)|(7,1)=>{self.mult.set_params_input(error_type,position,err_input1,err_input2)}
             (_,_)=>{}
         }
     }
@@ -195,7 +224,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
             let new_layer = Layer::new(layer, new_extra_iter, new_intra_iter);
             layers.push(Arc::new(Mutex::new(new_layer)));
         }
-        SNN::<N, {INPUT_DIM }, { OUTPUT_DIM }>::new(layers, transient)
+        SNN::<N, {INPUT_DIM }, { OUTPUT_DIM }>::new(layers, transient, self.adder.clone(), self.mult.clone())
     }
 
 

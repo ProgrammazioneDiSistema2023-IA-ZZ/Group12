@@ -1,4 +1,5 @@
 use crate::snn::neuron::Neuron;
+use crate::snn::components::{Adder, Multiplier};
 /// Struttura che rappresenta un errore stuck-at-X su un determinato bit
 #[derive(Clone, Debug)]
 struct ErrorBit{
@@ -99,13 +100,15 @@ impl LIFNeuron {
 impl Neuron for LIFNeuron{
     /* in caso di un errore stuck-at-X sul potenziale di membrana, questo errore
         deve essere forzato prima di ciascun utilizzo del potenziale *(i.e. formula e confronto)* */
-    fn update_v_mem(&mut self, t: u64, intra_weight: f64, extra_weight: f64) -> u8 {
-        let weight_sum = intra_weight+extra_weight;
-
-        let exponent = -(((t-self.t_s)as f64)*self.d_t)/self.tau;
+    fn update_v_mem(&mut self, t: u64, intra_weight: f64, extra_weight: f64, adder: Adder, mult: Multiplier) -> u8 {
+        let weight_sum = adder.add(intra_weight,extra_weight);
+        //let weight_sum = intra_weight+extra_weight;
+        let exponent = -mult.div(mult.mul(adder.sub(t as f64, self.t_s as f64),self.d_t as f64),self.tau as f64);
+       // let exponent = -(((t-self.t_s)as f64)*self.d_t)/self.tau;
         /* controllo sull'errore su v_mem prima del suo utilizzo */
         self.check_error();
-        self.v_mem = self.v_rest + (self.v_mem-self.v_rest)*exponent.exp() + weight_sum;
+        self.v_mem = adder.add(adder.add(self.v_rest ,mult.mul(adder.sub(self.v_mem,self.v_rest),exponent.exp())),weight_sum);
+       // self.v_mem = self.v_rest + (self.v_mem-self.v_rest)*exponent.exp() + weight_sum;
 
         self.t_s = t;
         /* controllo sull'errore su v_mem prima del suo confronto con la soglia */
@@ -118,6 +121,10 @@ impl Neuron for LIFNeuron{
             0
         }
     }
+
+
+
+
     fn init_neuron(&mut self) {
         self.v_mem= self.v_rest;
         self.t_s = 0u64;

@@ -5,6 +5,7 @@ use crate::snn::neuron::Neuron;
 use crate::snn::Evento;
 use crate::snn::processor::Processor;
 use rand::Rng;
+use crate::snn::components::{Adder, Multiplier};
 
 
 /// Struttura che rappresenta la rete neurale
@@ -19,14 +20,18 @@ use rand::Rng;
 pub struct SNN<N: Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>{
     layers: Vec<Arc<Mutex<Layer<N>>>>,
     transient_error: Option<(usize, usize,i32, u8)>,//layer, neuron, component, position
+    adder: Adder,
+    multiplier: Multiplier
 }
 
 impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
     SNN<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM> {
-    pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>, transient_error: Option<(usize, usize,i32, u8)>) -> Self {
+    pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>, transient_error: Option<(usize, usize, i32, u8)>, adder: Adder, multiplier: Multiplier) -> Self {
         Self {
             layers,
             transient_error,
+            adder,
+            multiplier,
         }
     }
 
@@ -62,7 +67,9 @@ impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM
             self.layers[layer].lock().unwrap().set_transient_error(neuron,component,position,random_instant);
         }
         let processor = Processor {};
-        let output_events = processor.process_events(self, input_events);
+        let adder = self.adder.clone();
+        let mult = self.multiplier.clone();
+        let output_events = processor.process_events(self, input_events, adder, mult);
 
         /* trasformiamo gli Eventi di output in vettori di segnali, in modo tale che
             il valore di ritorno sia coerente con l'argomento in ingresso della funzione */
@@ -71,6 +78,7 @@ impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM
 
         output_spikes
     }
+
 
 /// Trasforma i vettori di segnali in ingresso in Eventi di impulsi che contegano le stesse informazioni.
 /// Controlla inoltre che i valori passati rappresentino effettivamente dei segnali, i.e. siano `0` o `1`

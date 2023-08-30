@@ -1,3 +1,6 @@
+use std::ops::Add;
+use crate::snn::components::Adder;
+use crate::snn::components::Multiplier;
 /// Tratto generico che rappresenta il neurone di una rete
 pub trait Neuron: Send{
 /// Funzione per calcolare il nuovo potenziale di membrana del neurone;
@@ -6,7 +9,7 @@ pub trait Neuron: Send{
 /// * `t` - Instante di tempo corrente
 /// * `intra_weight` - Somma pesata dei segnali provenienti dal layer stesso
 /// * `extra_weight` - Somma pesata dei segnali provenienti dal layer precedente
-    fn update_v_mem(&mut self, t: u64, intra_weight: f64, extra_weight: f64)->u8;
+    fn update_v_mem(&mut self, t: u64, intra_weight: f64, extra_weight: f64, adder: Adder, mult: Multiplier)->u8;
 /// Funzione per resettare i parametri del neurone a quelli iniziali
     fn init_neuron(&mut self);
 /// Funzione per per settare un errore stuck-at-X sul potenziale di membrana
