@@ -1,3 +1,4 @@
+use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, Sender};
 use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
@@ -15,10 +16,12 @@ struct TransientError{
     position:u8,
 /// Istante di tempo in cui si verifica l'errore
     time: u64,
+
+    input_errors: (i32,i32)
 }
 impl TransientError {
-    pub fn new( neuron: usize, component: i32, position: u8, time: u64) -> Self {
-        Self { neuron, component, position, time }
+    pub fn new(neuron: usize, component: i32, position: u8, time: u64, input_errors: (i32, i32)) -> Self {
+        Self { neuron, component, position, time, input_errors }
     }
 }
 /// Layer della rete neurale
@@ -78,8 +81,8 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
 ///     * `3` -> uno dei pesi interni, dal neurone specificato
 /// * `position` - posizione del bit affetto da errore
 /// * `time` - istante di tempo in cui si verifica l'errore
-    pub fn set_transient_error(&mut self, neuron: usize, component: i32, position: u8, time: u64){
-        self.error=Some(TransientError::new(neuron,component,position,time))
+    pub fn set_transient_error(&mut self, neuron: usize, component: i32, position: u8, time: u64, input_errors: (i32, i32)){
+        self.error=Some(TransientError::new(neuron,component,position,time, input_errors))
     }
 /// Genera a caso l'indice del peso su cui applicare l'errore
     fn random_w_index(w:&Vec<f64>)->usize{
@@ -88,47 +91,75 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
     }
 /// Funzione per controllare la presenza di un errore transitorio nel layer
 /// e se questo avviene nell'istante *current_instant* specificato
-    fn check_transient_error(&mut self, current_instant: u64){
-        if self.error.is_none() { return; }
+    fn check_transient_error(&mut self, current_instant: u64, adder: &mut Adder,  mult: &mut Multiplier) ->Option<(Adder, Multiplier)>{
+        if self.error.is_none() { return None; }
         let transient_error= self.error.as_ref().unwrap();
         /* controllo sull'istante di tempo*/
-        if transient_error.time !=current_instant { return; }
+        if transient_error.time !=current_instant { return None; }
 
         let n=&mut self.neurons[transient_error.neuron];
         let position=transient_error.position;
         match transient_error.component {
             //Threshold
-            0=>{error_handling::threshold_fault(n,2,position);},
+            0=>{error_handling::threshold_fault(n,2,position); return None;},
             //Membrane
-            1=>{error_handling::membrane_fault(n,2,position);},
+            1=>{error_handling::membrane_fault(n,2,position); return  None;},
             //Extra
             2=>{
                 let w= &mut self.weights[transient_error.neuron];
                 let index=Layer::<N>::random_w_index(w);
                 error_handling::weight_fault(&mut w[index],2, position);
+                return  None;
             },
             //Intra
             3=>{
                 let w= &mut self.intra_weights[transient_error.neuron];
                 let index=Layer::<N>::random_w_index(w);
                 error_handling::weight_fault(&mut w[index],2, position);
+                return  None;
+            },
+            4=>{
+                adder.set_params(2, position);
+                return Some((*adder, *mult))
+            },
+            5=>{
+                adder.set_params_input(2, position, transient_error.input_errors.0,transient_error.input_errors.1);
+                return Some((*adder, *mult))
+            },
+            6=>{
+                mult.set_params(2, position);
+                return Some((*adder, *mult))
+            },
+            7=>{
+                mult.set_params_input(2, position, transient_error.input_errors.0,transient_error.input_errors.1);
+                return Some((*adder, *mult))
             },
             _=>{},
         }
-        return;
+        return Some((*adder, *mult));
     }
 /// Funzione per processare gli impulsi in input al layer
 /// # Argomenti
 /// * `layer_input_rc` - **Receiver** del channel con il layer precedente, attende la ricezione dell'Evento rappresentante gli impulsi in input
 /// * `layer_output_tx` - **Sender** del channel con il layer successivo, invia l'Evento rappresentante gli impulsi di output
-    pub fn process(&mut self, adder:Adder, multiplier: Multiplier, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
+    pub fn process(&mut self, adder: Adder, multiplier:  Multiplier, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
 
         /* Prendiamo l'output del layer precedente */
         while let Ok(input_spike) = layer_input_rc.recv() {
+            let mut local_adder=  adder;
+            let mut local_mult = multiplier;
+
             let instant = input_spike.ts;
             let mut output_spikes = Vec::<u8>::with_capacity(self.neurons.len());
             /* controlliamo che non vi sia un transient bit-flip in questo determinato istante */
-            self.check_transient_error(instant);
+            let check_res =self.check_transient_error(instant, &mut adder.clone(), &mut multiplier.clone());
+            match check_res{
+                None=>{}
+                Some((adder_new, mult_new))=>{
+                    local_adder = adder_new;
+                    local_mult = mult_new;
+                }
+            }
 
             /* Processiamo l'input per ogni neurone nel layer */
             for (n_index, neuron) in self.neurons.iter_mut().enumerate(){
@@ -148,7 +179,7 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
                     }
                 }
                 /* Calcoliamo il potenziale di membrana e l'output del neurone */
-                let neuron_spike = neuron.update_v_mem(instant,intra_weights_sum, extra_weights_sum, adder.clone(), multiplier.clone());
+                let neuron_spike = neuron.update_v_mem(instant,intra_weights_sum, extra_weights_sum, local_adder.clone(), local_mult.clone());
                 /* Salvataggio dell'output del neurone nel vettore contenente l'output totale del layer */
                 output_spikes.push(neuron_spike);
             }

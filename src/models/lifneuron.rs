@@ -100,7 +100,7 @@ impl LIFNeuron {
 impl Neuron for LIFNeuron{
     /* in caso di un errore stuck-at-X sul potenziale di membrana, questo errore
         deve essere forzato prima di ciascun utilizzo del potenziale *(i.e. formula e confronto)* */
-    fn update_v_mem(&mut self, t: u64, intra_weight: f64, extra_weight: f64, adder: Adder, mult: Multiplier) -> u8 {
+    fn update_v_mem(&mut self, t: u64, intra_weight: f64, extra_weight: f64, adder:  Adder, mult:  Multiplier) -> u8 {
         let weight_sum = adder.add(intra_weight,extra_weight);
         //let weight_sum = intra_weight+extra_weight;
         let exponent = -mult.div(mult.mul(adder.sub(t as f64, self.t_s as f64),self.d_t as f64),self.tau as f64);

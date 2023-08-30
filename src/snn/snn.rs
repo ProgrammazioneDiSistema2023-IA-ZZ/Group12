@@ -19,14 +19,14 @@ use crate::snn::components::{Adder, Multiplier};
 /// * `SNN_OUTPUT_DIM` - dimensione dell'output della rete
 pub struct SNN<N: Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>{
     layers: Vec<Arc<Mutex<Layer<N>>>>,
-    transient_error: Option<(usize, usize,i32, u8)>,//layer, neuron, component, position
+    transient_error: Option<(usize, usize,i32, u8,(i32,i32))>,//layer, neuron, component, position
     adder: Adder,
     multiplier: Multiplier
 }
 
 impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>
     SNN<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM> {
-    pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>, transient_error: Option<(usize, usize, i32, u8)>, adder: Adder, multiplier: Multiplier) -> Self {
+    pub fn new(layers: Vec<Arc<Mutex<Layer<N>>>>, transient_error: Option<(usize, usize, i32, u8, (i32,i32))>, adder: Adder, multiplier: Multiplier) -> Self {
         Self {
             layers,
             transient_error,
@@ -60,15 +60,15 @@ impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM
         /* trasformiamo l'input in Eventi */
         let input_events = SNN::<N, SNN_INPUT_DIM, SNN_OUTPUT_DIM>::spikes_to_events(input_spikes);
         if self.transient_error.is_some(){
-            let (layer, neuron, component, position)=self.transient_error.unwrap();
+            let (layer, neuron, component, position, input_errors)=self.transient_error.unwrap();
             let mut rng=rand::thread_rng();
             let random_instant:u64=rng.gen_range(0..SPIKES_DURATION) as u64;
             /* settiamo l'errore transitorio sul layer corrispontente */
-            self.layers[layer].lock().unwrap().set_transient_error(neuron,component,position,random_instant);
+            self.layers[layer].lock().unwrap().set_transient_error(neuron,component,position,random_instant, input_errors);
         }
         let processor = Processor {};
-        let adder = self.adder.clone();
-        let mult = self.multiplier.clone();
+        let mut adder = self.adder.clone();
+        let mut  mult = self.multiplier.clone();
         let output_events = processor.process_events(self, input_events, adder, mult);
 
         /* trasformiamo gli Eventi di output in vettori di segnali, in modo tale che

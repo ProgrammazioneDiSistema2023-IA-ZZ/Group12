@@ -142,7 +142,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 ///     - `2` -> Transient bit-flip
 /// * `info_table` - struttura per salvare le informazioni di tutti gli errori inseriti
 /// * `transient_error` - variabile opzionale per salvare le informazioni temporanee di un errore transitorio
-    fn handle_errors(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable, transient_error: &mut Option<(usize, usize, i32, u8)>){
+    fn handle_errors(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable, transient_error: &mut Option<(usize, usize, i32, u8,(i32,i32))>){
         let mut rng = rand::thread_rng();
         if components.len()==0 {return;}
         let component_index = rng.gen_range(0..components.len());
@@ -180,7 +180,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
                 let idx=SnnBuilder::<N>::weight_index(w, &mut rng);
                 error_handling::weight_fault(&mut w[idx],error_type,position);}
             //transient error
-            (0,2)|(1,2)|(2,2)|(3,2)=>{*transient_error=Some((layer_index,neuron_index,component, position))}
+            (0,2)|(1,2)|(2,2)|(3,2)|(4,2)|(5,2)|(6,2)|(7,2)=>{*transient_error=Some((layer_index,neuron_index,component, position,(err_input1,err_input2)))}
 
             (4,0)|(4,1)=>{self.adder.set_params(error_type, position)}
             (5,0)|(5,1)=>{self.adder.set_params_input(error_type,position,err_input1,err_input2)}
@@ -209,7 +209,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         //Eventualmente fare check su #pesi
 
         let mut layers: Vec<Arc<Mutex<Layer<N>>>> = Vec::new();
-        let mut transient: Option<(usize, usize,i32, u8)>=None;
+        let mut transient: Option<(usize, usize,i32, u8, (i32,i32))>=None;
         self.handle_errors(components,error_type,info_table,&mut transient);
 
         let mut n_iter = self.params.neurons.clone().into_iter();
