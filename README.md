@@ -10,9 +10,14 @@
 - [Esempio di Utilizzo](#esempio-di-utilizzo)
 
 ## Descrizione
+Questo repository ha lo scopo di simulare una serie di possibili errori in una `Spiking Neural Network` e di studiarne la resilienza. La serie di errori che 
+vengono simulati e i vari componenti coinvolti sono indicati in seguito. 
+Il repository prevede una possibile implementazione di una `Spiking Neural Network` ma non prevede il supporto per la fase di training della rete, solo quella
+di esecuzione.
+
 ## Membri del Gruppo
-- Andrea Sillano sxxxxxx
-- Lara Moresco sxxxxxx
+- Andrea Sillano s314771
+- Lara Moresco s320153
 - Davide Palatroni s314819
 
 ## Dipendenze
@@ -43,6 +48,16 @@ Il modulo `Error Handling` permette di simulare uno tra gli errori richiesti sul
   - `ErrorType::None`: simula il corretto funzionamento della rete, senza nessun errore;
 Tra tali errori, lo `Stuck-At-X` viene applicato forzando il bit al valore definito (**0 oppure 1**) per tutta la durata dell'inferenza mentre il `transient bit flip` ha validità solo in uno specifico istante di tempo ed 
 eventuali nuove scritture non subiscono tale errore.
+
+Le strutture su cui è possbile studiarne il comportamento sono:
+- `Potenziale di Soglia`
+- `Potenziale di Membrana`;
+- `Pesi`, che possono essere `Intra-Weights`, ovvero i pesi tra due neuroni appartenenti allo stesso layer, oppure `Extra-Weights`, ovvero pesi tra due neuroni appartenenti a due layer diversi
+- `Componenti Hardware`, che a loro volta possono essere:
+  - `Adder`, che simula il modulo somma;
+  - `Multiplier`, che simula il moltiplicatore e il divisore;
+l'errore simulato sui componenti hardware può riguardare l'input (solo uno oppure entrambi) oppure l'output;
+
 ## Strutture Principali
 La libreria provvede le seguenti strutture:
 
@@ -118,6 +133,23 @@ pub struct InfoTable{
   accuracy: Vec<f64>,
   counter: i32
 }
+```
+- `Adder` simula il componente che opera le operazioni di addizione e sottrazione in un sistema di elaborazione
+  ```rust
+  pub struct Adder{
+    error:i32,
+    position: u8,
+    input: Option<(i32,i32)>
+  }
+  ```
+  
+- `Multiplier` simula il componente che opera le operazioni di moltiplicazione e divisione in un sistema di elaborazione
+```rust
+  pub struct Multiplier{
+    error:i32,
+    position: u8,
+    input: Option<(i32,i32)>
+  }
 ```
 
 ## Metodi Principali
