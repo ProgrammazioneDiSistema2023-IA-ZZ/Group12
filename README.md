@@ -24,6 +24,8 @@ di esecuzione.
 - `Rust` (versione 1.56.1)
 - `Cargo` (versione 1.56.0)
 - `rand` (versione 0.8.5)
+- `cli-table` (versione 0.4)
+- `strip-ansi-escapes` (versione 0.2.0)
 
 ## Struttura del Repository
 - `src/` contiene il codice sorgente  della libreria
@@ -53,8 +55,8 @@ Le strutture su cui è possbile studiarne il comportamento sono:
 - `Potenziale di Soglia`
 - `Potenziale di Membrana`;
 - `Pesi`, che possono essere `Intra-Weights`, ovvero i pesi tra due neuroni appartenenti allo stesso layer, oppure `Extra-Weights`, ovvero pesi tra due neuroni appartenenti a due layer diversi
-- `Componenti Hardware`, che a loro volta possono essere:
-  - `Adder`, che simula il modulo somma;
+- `Blocchi Elaborativi`, che a loro volta possono essere:
+  - `Adder`, che simula il sommatore;
   - `Multiplier`, che simula il moltiplicatore e il divisore;
 l'errore simulato sui componenti hardware può riguardare l'input (solo uno oppure entrambi) oppure l'output;
 

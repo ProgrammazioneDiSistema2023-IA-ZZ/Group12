@@ -1,6 +1,6 @@
 use std::ops::Add;
-use crate::snn::components::Adder;
-use crate::snn::components::Multiplier;
+use crate::error_handling::components::Adder;
+use crate::error_handling::components::Multiplier;
 /// Tratto generico che rappresenta il neurone di una rete
 pub trait Neuron: Send{
 /// Funzione per calcolare il nuovo potenziale di membrana del neurone;

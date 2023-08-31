@@ -1,4 +1,4 @@
-use crate::snn::error_handling::ErrorType::{Flip, Stuck0, Stuck1};
+use crate::error_handling::error_handling::ErrorType::{Flip, Stuck0, Stuck1};
 use crate::snn::neuron::Neuron;
 
 #[derive(Copy, Clone)]

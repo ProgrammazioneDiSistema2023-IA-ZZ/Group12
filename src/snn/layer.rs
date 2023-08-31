@@ -2,9 +2,9 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, Sender};
 use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
-use crate::snn::error_handling;
+use crate::error_handling::error_handling;
 use rand::Rng;
-use crate::snn::components::{Adder, Multiplier};
+use crate::error_handling::components::{Adder, Multiplier};
 
 /// Struttura che rappresenta un errore transitorio bit-flip su un bit di un componente
 struct TransientError{

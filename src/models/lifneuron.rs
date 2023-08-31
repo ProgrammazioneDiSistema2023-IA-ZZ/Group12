@@ -1,5 +1,5 @@
 use crate::snn::neuron::Neuron;
-use crate::snn::components::{Adder, Multiplier};
+use crate::error_handling::components::{Adder, Multiplier};
 /// Struttura che rappresenta un errore stuck-at-X su un determinato bit
 #[derive(Clone, Debug)]
 struct ErrorBit{

@@ -5,9 +5,9 @@ use crate::snn::neuron::Neuron;
 use crate::snn::snn::SNN;
 use rand::Rng;
 use rand::rngs::ThreadRng;
-use crate::snn::error_handling;
-use crate::snn::info_table::InfoTable;
-use crate::snn::components::{Adder, Multiplier};
+use crate::error_handling::error_handling;
+use crate::print_report::info_table::InfoTable;
+use crate::error_handling::components::{Adder, Multiplier};
 
 /// Enumeratore che identifica il tipo di errore da inserire nella rete
 pub enum ErrorComponent{

@@ -3,6 +3,7 @@ use std::fs::File;
 use std::io::Write;
 use cli_table::{format::Justify, Cell, Style, Table};
 use strip_ansi_escapes::strip;
+
 /// Struttura per salvare le informazioni di tutti gli errori inseriti nella rete e, per ogni inserimento,
 /// l'accuratezza dell'output della rete con l'errore
 #[derive(Debug)]

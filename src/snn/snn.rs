@@ -5,7 +5,7 @@ use crate::snn::neuron::Neuron;
 use crate::snn::Evento;
 use crate::snn::processor::Processor;
 use rand::Rng;
-use crate::snn::components::{Adder, Multiplier};
+use crate::error_handling::components::{Adder, Multiplier};
 
 
 /// Struttura che rappresenta la rete neurale

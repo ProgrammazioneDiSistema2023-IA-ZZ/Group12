@@ -1,10 +1,12 @@
 use crate::models::lifneuron::LIFNeuron;
 use crate::snn::snn_builder::SnnBuilder;
-use crate::snn::info_table::InfoTable;
-use crate::snn::menu_handler;
+use crate::print_report::info_table::InfoTable;
+use crate::print_report::menu_handler;
 use std::fs::File;
 mod models;
 mod snn;
+mod error_handling;
+mod print_report;
 
 
 fn main(){
@@ -12,7 +14,7 @@ fn main(){
     let mut error_index = -1;
     let mut n_faults = 0;
     let mut table = InfoTable::new();
-    let mut file = File::create("output.txt").expect("Unable to create file");
+    let mut file = File::create("report.txt").expect("Unable to create file");
 
     menu_handler::print_menu(&mut components,&mut  error_index, &mut n_faults);
     menu_handler::print_configuration(&components, error_index, n_faults);

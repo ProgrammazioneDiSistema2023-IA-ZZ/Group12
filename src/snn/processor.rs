@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 use std::sync::mpsc::channel;
 use std::thread;
 use std::thread::JoinHandle;
-use crate::snn::components::{Adder, Multiplier};
+use crate::error_handling::components::{Adder, Multiplier};
 use crate::snn::Evento;
 use crate::snn::layer::Layer;
 use crate::snn::neuron::Neuron;
