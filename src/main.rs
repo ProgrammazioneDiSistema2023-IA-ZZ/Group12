@@ -77,11 +77,15 @@ fn main(){
         let snn_result= snn.process(&input);
         let acc = calculate_accuracy(&snn_result_0_error, &snn_result);
         table.add_output((1.0-acc)*100.0);
-        println!("{:?}", snn_result);
     }
 
-    menu_handler::write_configuration_to_file(&mut file, &components, error_index, n_faults).expect("Impossible to create file!");
-    table.print_table(&mut file).expect("Unable To write Statics");
+    if components.len() != 0{
+        menu_handler::write_configuration_to_file(&mut file, &components, error_index, n_faults).expect("nable to write on file");
+        table.print_table(&mut file).expect("Unable To write Statics");
+    }else{
+        table.print_no_error(&mut file, &snn_result_0_error, &input).expect("Unable to write on file");
+    }
+
 
 }
 fn calculate_accuracy<const SNN_OUTPUT_DIM: usize, const SPIKES_DURATION: usize>(v1: &[[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION], v2: &[[u8; SNN_OUTPUT_DIM]; SPIKES_DURATION]) -> f64 {

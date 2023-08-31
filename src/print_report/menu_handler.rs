@@ -23,6 +23,7 @@ pub fn print_components_menu(componets: &mut Vec<i32>){
     println!("#         5 => Adder Input                            #");
     println!("#         6 => Multiplier Output                      #");
     println!("#         7 => Multiplier Input                       #");
+    println!("#         8 => All Components                         #");
     println!("#                                                     #");
     println!("#######################################################");
     println!("Insert digit to select component to verify! - (-1 to end components selection)");
@@ -46,12 +47,23 @@ pub fn print_components_menu(componets: &mut Vec<i32>){
 
         match trimmed_input.parse::<i32>() {
             Ok(number) => {
-                if number<0 || number>7{
+                if number<0 || number>8{
                     println!("Invalid component digit, try another one!");
                 }else if componets.contains(&number){
                     println!("Components already inserted!, try another one!");
+                }else if number == 8{
+                    componets.clear();
+                    for i in 0..8{
+                            componets.push(i);
+                        }
+                    println!("All components selected");
+
+                    break;
                 }else{
                     componets.push(number);
+                    if componets.len() == 8 {
+                        break;
+                    }
                 }
 
             },
