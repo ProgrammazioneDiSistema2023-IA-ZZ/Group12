@@ -74,13 +74,18 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
 /// Setta un errore transitorio bit-flip su uno dei componenti del layer
 /// # Argomenti
 /// * `neuron` - indice del neurone sul cui relativo componente è presente l'errore
-/// * `componet` - componente su cui avviene l'errore. Può avere valore:
+/// * `component` - componente su cui avviene l'errore. Può avere valore:
 ///     * `0` -> potenziale di soglia
 ///     * `1` -> potenziale di membrana
 ///     * `2` -> uno dei pesi esterni, verso il neurone specificato
 ///     * `3` -> uno dei pesi interni, dal neurone specificato
+///     * `4` -> uscita del sommatore
+///     * `5` -> ingresso del sommatore
+///     * `6` -> uscita del moltiplicatore
+///     * `7` -> ingresso del moltiplicatore
 /// * `position` - posizione del bit affetto da errore
 /// * `time` - istante di tempo in cui si verifica l'errore
+/// * `input_errors` - nei casi `component=5` o `7`, specifica se su quale ingresso c'è l'errore
     pub fn set_transient_error(&mut self, neuron: usize, component: i32, position: u8, time: u64, input_errors: (i32, i32)){
         self.error=Some(TransientError::new(neuron,component,position,time, input_errors))
     }
@@ -90,7 +95,8 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
         rng.gen_range(0..w.len())
     }
 /// Funzione per controllare la presenza di un errore transitorio nel layer
-/// e se questo avviene nell'istante *current_instant* specificato
+/// e se questo avviene nell'istante *current_instant* specificato.
+/// Nei casi di errore su sommatore o moltiplicatore, ritorna un Option con i componenti modificati, negli altri casi None
     fn check_transient_error(&mut self, current_instant: u64, adder: &mut Adder,  mult: &mut Multiplier) ->Option<(Adder, Multiplier)>{
         if self.error.is_none() { return None; }
         let transient_error= self.error.as_ref().unwrap();
@@ -101,45 +107,50 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
         let position=transient_error.position;
         match transient_error.component {
             //Threshold
-            0=>{error_handling::threshold_fault(n,2,position); return None;},
+            0=>{error_handling::threshold_fault(n,2,position); None},
             //Membrane
-            1=>{error_handling::membrane_fault(n,2,position); return  None;},
+            1=>{error_handling::membrane_fault(n,2,position); None},
             //Extra
             2=>{
                 let w= &mut self.weights[transient_error.neuron];
                 let index=Layer::<N>::random_w_index(w);
                 error_handling::weight_fault(&mut w[index],2, position);
-                return  None;
+                None
             },
             //Intra
             3=>{
                 let w= &mut self.intra_weights[transient_error.neuron];
                 let index=Layer::<N>::random_w_index(w);
                 error_handling::weight_fault(&mut w[index],2, position);
-                return  None;
+                None
             },
+            // Adder output
             4=>{
                 adder.set_params(2, position);
-                return Some((*adder, *mult))
+                Some((*adder, *mult))
             },
+            // Adder inputs
             5=>{
-                adder.set_params_input(2, position, transient_error.input_errors.0,transient_error.input_errors.1);
-                return Some((*adder, *mult))
+                adder.set_params_input(position, transient_error.input_errors.0,transient_error.input_errors.1);
+                Some((*adder, *mult))
             },
+            // Multiplier output
             6=>{
                 mult.set_params(2, position);
-                return Some((*adder, *mult))
+                Some((*adder, *mult))
             },
+            // Multiplier input
             7=>{
-                mult.set_params_input(2, position, transient_error.input_errors.0,transient_error.input_errors.1);
-                return Some((*adder, *mult))
+                mult.set_params_input(position, transient_error.input_errors.0,transient_error.input_errors.1);
+                Some((*adder, *mult))
             },
-            _=>{},
+            _=>{None},
         }
-        return Some((*adder, *mult));
     }
 /// Funzione per processare gli impulsi in input al layer
 /// # Argomenti
+/// * `adder` - Componente Sommatore utilizzabile dai neuroni
+/// * `multiplier` - Componente Moltiplicatore utilizzabile dai neuroni
 /// * `layer_input_rc` - **Receiver** del channel con il layer precedente, attende la ricezione dell'Evento rappresentante gli impulsi in input
 /// * `layer_output_tx` - **Sender** del channel con il layer successivo, invia l'Evento rappresentante gli impulsi di output
     pub fn process(&mut self, adder: Adder, multiplier:  Multiplier, layer_input_rc: Receiver<Evento>, layer_output_tx: Sender<Evento>){
@@ -156,6 +167,9 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
             match check_res{
                 None=>{}
                 Some((adder_new, mult_new))=>{
+                    /* Se si verifica un errore transitorio sul sommatore o moltiplicatore,
+                    per questo istante di tempo utilizzeremo delle copie dei due componenti
+                    a cui è stato inserito l'errore*/
                     local_adder = adder_new;
                     local_mult = mult_new;
                 }

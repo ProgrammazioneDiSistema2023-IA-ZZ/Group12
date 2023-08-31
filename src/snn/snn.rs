@@ -12,6 +12,8 @@ use crate::snn::components::{Adder, Multiplier};
 /// # Campi
 /// * `layers` - vettore dei layer che costituiscono la rete
 /// * `transient_error` - parametro opzionale temporaneo che contiene le informazioni relative a un possibile
+/// * `adder` - sommatore unico della rete
+/// * `multiplier` - moltiplicatore unico della rete
 /// errore transitorio, in attesa che venga selezionato un istante casuale
 /// # Tipi e costanti
 /// * `N` - tipo generico per rappresentare un Neurone
@@ -19,7 +21,7 @@ use crate::snn::components::{Adder, Multiplier};
 /// * `SNN_OUTPUT_DIM` - dimensione dell'output della rete
 pub struct SNN<N: Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM: usize>{
     layers: Vec<Arc<Mutex<Layer<N>>>>,
-    transient_error: Option<(usize, usize,i32, u8,(i32,i32))>,//layer, neuron, component, position
+    transient_error: Option<(usize, usize,i32, u8,(i32,i32))>,//layer, neuron, component, position, (input1, input2)
     adder: Adder,
     multiplier: Multiplier
 }

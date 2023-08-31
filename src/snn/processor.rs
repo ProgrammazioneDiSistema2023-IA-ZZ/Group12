@@ -19,6 +19,8 @@ impl Processor {
 /// # Argomenti
 /// * `snn` - rete neurale che deve processare gli impulsi
 /// * `spikes` - vettore degli Eventi in input; ogni Evento un vettore di impulsi in ingresso ad un determinato istante
+/// * `adder` - componente Sommatore della rete
+/// * `mult` - componente Moltiplicatore della rete
     pub fn process_events<'a, N: Neuron+Clone+'static, S: IntoIterator<Item=&'a mut Arc<Mutex<Layer<N>>>>>
         (self, snn: S, spikes: Vec<Evento>, adder: Adder , mult:  Multiplier) -> Vec<Evento>{
         /* Creiamo la pool di tutti i thread */

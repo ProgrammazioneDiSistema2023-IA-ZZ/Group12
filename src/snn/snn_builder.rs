@@ -111,19 +111,17 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
     fn weight_index(weights: &Vec<f64>, rng: &mut ThreadRng) -> usize{
         rng.gen_range(0..weights.len())
     }
+/// Funzione per generare a caso la presenza di un errore su uno solo o entrambi gli ingressi di un blocco elaborativo
     fn generate_input_error(rng: &mut ThreadRng, error_type:i32)->(i32,i32){
         let index = rng.gen_range(0..3);
         match index{
-            0=>{
-                return (error_type, 3);
-            }
-            1=>{
-                return ( 3,error_type);
-            }
-            2=>{
-                return ( error_type,error_type);
-            }
-            _ => {(3,3)}
+            /* solo sul primo ingresso */
+            0 => (error_type, 3),
+            /* solo sul secondo ingresso */
+            1 => (3, error_type),
+            /* su entrambi */
+            2 => (error_type, error_type),
+            _ => (3, 3)
         }
     }
 
@@ -136,6 +134,10 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 ///     - `1` -> Potenziale di membrana
 ///     - `2` -> Pesi esterni
 ///     - `3` -> Pesi interni
+///     - `4` -> Adder output
+///     - `5` -> Adder input
+///     - `6` -> Multiplier output
+///     - `7` -> Multiplier input
 /// * `error_type` - tipo di errore da iniettare nella rete:
 ///     - `0` -> Stuck-at-0
 ///     - `1` -> Stuck-at-1
@@ -158,13 +160,13 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         info_table.add_layer(layer_index);
         info_table.add_neuron(neuron_index);
 
-
+        let (err_input1, err_input2) = SnnBuilder::<N>::generate_input_error(&mut rng, error_type);
         /* In base al tipo di errore e componente selezionato, si possono verificare tre casi generali:
             1- stuck-at-X su parametri costanti (i.e. soglia e pesi): Il bit deve essere settato solo all'inizio
             2- stuck-at-X su membrana: deve essere garantito X ad ogni variazione del valore (i.e. ogni volta che il neurone processa un input)
             3- transient-bit-flip su qualsiasi componente: valore settato una volta sola, ma ad un istante casuale (verrà iniettato da Snn.process())
         */
-        let (err_input1, err_input2) = SnnBuilder::<N>::generate_input_error(&mut rng, error_type);
+
         info_table.add_error_inputs(err_input1,err_input2);
         match (component,error_type) {
             //stuck_at_X on threshold
@@ -195,20 +197,23 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
             (0,2)|(1,2)|(2,2)|(3,2)|(4,2)|(5,2)|(6,2)|(7,2)=> {
                 *transient_error = Some((layer_index, neuron_index, component, position, (err_input1, err_input2)));
             },
-
+            //stuck_at_X on Adder output
             (4,0)|(4,1)=>{self.adder.set_params(error_type, position);
 
             }
+            //stuck_at_X on Adder input(s)
             (5,0)|(5,1)=>{
-                self.adder.set_params_input(error_type,position,err_input1,err_input2);
+                self.adder.set_params_input(position,err_input1,err_input2);
 
             },
+            //stuck_at_X on Multiplier output
             (6,0)|(6,1)=>{
                 self.mult.set_params(error_type,position);
 
             },
+            //stuck_at_X on Multiplier input(s)
             (7,0)|(7,1)=>{
-                self.mult.set_params_input(error_type,position,err_input1,err_input2);
+                self.mult.set_params_input(position,err_input1,err_input2);
 
             }
             (_,_)=>{}
@@ -222,6 +227,10 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 ///     - `1` -> Potenziale di membrana
 ///     - `2` -> Pesi esterni
 ///     - `3` -> Pesi interni
+///     - `4` -> Adder output
+///     - `5` -> Adder input
+///     - `6` -> Multiplier output
+///     - `7` -> Multiplier input
 /// * `error_type` - tipo di errore da iniettare nella rete:
 ///     - `0` -> Stuck-at-0
 ///     - `1` -> Stuck-at-1
@@ -231,7 +240,6 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         if self.params.extra_weights.len() != self.params.neurons.len() || self.params.intra_weights.len() != self.params.neurons.len(){
             panic!("Wrong number bewteen layers!")
         }
-        //Eventualmente fare check su #pesi
 
         let mut layers: Vec<Arc<Mutex<Layer<N>>>> = Vec::new();
         let mut transient: Option<(usize, usize,i32, u8, (i32,i32))>=None;
