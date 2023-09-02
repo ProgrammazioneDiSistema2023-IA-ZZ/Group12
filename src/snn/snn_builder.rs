@@ -55,7 +55,7 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
         self.params.clone()
     }
 
-    /** Per ora serve solo logicamente */
+    /** Serve solo logicamente */
     pub fn add_layer(&mut self) -> &mut SnnBuilder<N> {
         self
     }
@@ -236,7 +236,8 @@ impl <N: Neuron+ Clone+Debug> SnnBuilder<N> {
 ///     - `1` -> Stuck-at-1
 ///     - `2` -> Transient bit-flip
 /// * `info_table` - struttura per salvare le informazioni di tutti gli errori inseriti
-    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
+    pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32,
+                                                                 info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>{
         if self.params.extra_weights.len() != self.params.neurons.len() || self.params.intra_weights.len() != self.params.neurons.len(){
             panic!("Wrong number bewteen layers!")
         }
