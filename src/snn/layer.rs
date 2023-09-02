@@ -1,4 +1,3 @@
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc::{Receiver, Sender};
 use crate::snn::Evento;
 use crate::snn::neuron::Neuron;
