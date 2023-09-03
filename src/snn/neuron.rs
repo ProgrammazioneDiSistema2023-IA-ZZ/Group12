@@ -1,4 +1,3 @@
-use std::ops::Add;
 use crate::error_handling::components::Adder;
 use crate::error_handling::components::Multiplier;
 /// Tratto generico che rappresenta il neurone di una rete

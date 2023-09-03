@@ -21,9 +21,9 @@ fn main(){
 
     let mut binding = SnnBuilder::new();
     let builder = binding.add_layer().add_weight([
-        [0.1, 0.2],
-        [0.3, 0.4],
-        [0.5, 0.6]
+        [0.1, 0.2, 0.5],
+        [0.3, 0.4, 0.2],
+        [0.5, 0.6, 0.1]
     ]).add_neurons([
                         LIFNeuron::new(0.03, 0.05, 0.1, 1.0, 1.0),
                         LIFNeuron::new(0.05, 0.05, 0.1, 1.0, 1.0),

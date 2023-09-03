@@ -1,5 +1,4 @@
 use crate::error_handling::error_handling;
-use crate::error_handling::error_handling::ErrorType;
 /// Struttura rappresentante il componente elaborativo Sommatore in un circuito.
 /// Può essere affetto da errore sugli ingressi o sull'uscita
 #[derive(Clone,Debug, Copy)]

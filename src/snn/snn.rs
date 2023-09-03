@@ -69,8 +69,8 @@ impl <N:Neuron + Clone+'static, const SNN_INPUT_DIM: usize, const SNN_OUTPUT_DIM
             self.layers[layer].lock().unwrap().set_transient_error(neuron,component,position,random_instant, input_errors);
         }
         let processor = Processor {};
-        let mut adder = self.adder.clone();
-        let mut  mult = self.multiplier.clone();
+        let adder = self.adder.clone();
+        let mult = self.multiplier.clone();
         let output_events = processor.process_events(self, input_events, adder, mult);
 
         /* trasformiamo gli Eventi di output in vettori di segnali, in modo tale che
