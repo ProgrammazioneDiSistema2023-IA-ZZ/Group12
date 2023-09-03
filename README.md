@@ -29,9 +29,10 @@ di esecuzione.
 
 ## Struttura del Repository
 - `src/` contiene il codice sorgente  della libreria
-  + `models/` contiene le specifiche implementazioni dei modelli (in questo caso solo `LIFNeuron`)
-  + `snn/` contiene l'implementazione generica della SNN 
-  + 
+    + `error_handling/` contiene tutta la simulazione dell'errore sui componenti
+    + `models/` contiene le specifiche implementazioni dei modelli (in questo caso solo `LIFNeuron`)
+    + `print_report/` contiene tutte le informazioni relative alla stampa e al calcolo delle statistiche
+    + `snn/` contiene l'implementazione generica della SNN
 ## Organizzazione
 La libreria è organizzata come segue:
 - ### Builder
@@ -163,11 +164,7 @@ La libreria contiene i seguenti metodi principali:
     pub fn new() -> Self
     ```
     crea un nuovo `SnnBuilder`
-  
-    - **add_layer()**:
-    ```rust
-    
-    ```
+
     - **add_weight()**:
     ```rust
     pub fn add_weight<const NUM_NEURONS: usize, const INPUT_DIM: usize >(&mut self, weights:[[f64; INPUT_DIM]; NUM_NEURONS]) -> &mut SnnBuilder<N> 
@@ -185,11 +182,13 @@ La libreria contiene i seguenti metodi principali:
     pub fn add_intra_weights<const NUM_NEURONS: usize>(&mut self, intra_weights: [[f64; NUM_NEURONS]; NUM_NEURONS]) -> &mut SnnBuilder<N> 
     ```
     aggiunge i pesi tra i vari neuroni dello stesso layer
+
     - **build()**:
     ```rust
     pub fn build<const INPUT_DIM: usize, const OUTPUT_DIM:usize>(&mut self, components: &Vec<i32>, error_type: i32, info_table: &mut InfoTable) -> SNN<N, { INPUT_DIM }, { OUTPUT_DIM }>
     ```
     costruisce la `SNN` dalle informazioni raccolte fino a quel punto dal `SnnBuilder`. Il parametro `error_type` serve per forzare un errore specifico all'interno della rete.
+  
 - ### Metodi della Rete
   - Metodi di `Snn`:
     - **process()**:
@@ -204,6 +203,6 @@ La libreria contiene i seguenti metodi principali:
     ```rust
     fn embed_error(variable:f64, error:ErrorType, info_table: &mut InfoTable)->f64
     ```
-    calcola il valore di errore di `variable` dopo aver subito un errore di tipo `error`. 
+    restituisce il valore di errore di `variable` dopo aver subito un errore di tipo `error`. 
 
 ## Esempio di Utilizzo
