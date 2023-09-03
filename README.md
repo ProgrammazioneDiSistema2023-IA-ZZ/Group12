@@ -206,3 +206,67 @@ La libreria contiene i seguenti metodi principali:
     restituisce il valore di errore di `variable` dopo aver subito un errore di tipo `error`. 
 
 ## Esempio di Utilizzo
+L'esempio seguente mostra come allocare *staticamente* una `Spiking Neural Network` usando `SnnBuilder`, e come eseguirlo avendo 
+un output di 3 instanti per neurone.
+
+```rust
+    let mut binding = SnnBuilder::new();
+    let builder = binding.add_layer().add_weight([
+        [0.1, 0.2, 0.5],
+        [0.3, 0.4, 0.2],
+        [0.5, 0.6, 0.1]
+    ]).add_neurons([
+                        LIFNeuron::new(0.03, 0.05, 0.1, 1.0, 1.0),
+                        LIFNeuron::new(0.05, 0.05, 0.1, 1.0, 1.0),
+                        LIFNeuron::new(0.09, 0.05, 0.1, 1.0, 1.0),
+    ]).add_intra_weights([
+        [0.0, -0.25, -0.3],
+        [-0.10, 0.0, -0.3],
+        [-0.1, -0.3,  0.0]
+    ])
+    .add_layer()
+        .add_weight([
+            [0.1, 0.2, 0.3],
+            [0.4, 0.5, 0.6]
+        ]).add_neurons([
+        LIFNeuron::new(0.07, 0.04, 0.4, 1.0, 1.0),
+        LIFNeuron::new(0.3, 0.01, 0.4, 1.0, 1.0),
+    ]).add_intra_weights([
+        [0.0, -0.25],
+        [-0.10, 0.0]
+    ]).add_layer().add_weight([
+        [0.1, 0.2],
+        [0.3, 0.4],
+        [0.5, 0.6]
+    ]).add_neurons([
+        LIFNeuron::new(0.03, 0.01, 0.1, 1.0, 1.0),
+        LIFNeuron::new(0.05, 0.03, 0.2, 1.0, 1.0),
+        LIFNeuron::new(0.09, 0.06, 0.4, 1.0, 1.0),
+    ]).add_intra_weights([
+        [0.0, -0.25, -0.3],
+        [-0.10, 0.0, -0.3],
+        [-0.1, -0.3,  0.0]
+    ]).add_layer()
+        .add_weight([
+            [0.1, 0.2, 0.3],
+            [0.4, 0.5, 0.6]
+        ]).add_neurons([
+        LIFNeuron::new(0.07, 0.01, 0.2, 1.0, 1.0),
+        LIFNeuron::new(0.03, 0.08, 0.3, 1.0, 1.0),
+    ]).add_intra_weights([
+        [0.0, -0.25],
+        [-0.10, 0.0]
+    ]);
+
+    let input = [[0,1,1], [0,0,1], [1,1,1]];
+
+
+    /* SNN WITHOUT ANY ERROR */
+    let mut snn_0_error = builder.clone().build::<3,2>(&Vec::new(), -1, &mut table);
+    let snn_result_0_error= snn_0_error.process(&input);
+    /* SNN WITH ERRORS */
+    for _ in 0..n_faults {
+        let mut snn = builder.clone().build::<3,2>(&components, error_index, &mut table);
+        let snn_result= snn.process(&input);
+}
+```
