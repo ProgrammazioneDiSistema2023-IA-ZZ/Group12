@@ -159,6 +159,7 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
         while let Ok(input_spike) = layer_input_rc.recv() {
             let mut local_adder=  adder;
             let mut local_mult = multiplier;
+            let mut at_least_one_spike = false;
 
             let instant = input_spike.ts;
             let mut output_spikes = Vec::<u8>::with_capacity(self.neurons.len());
@@ -196,11 +197,21 @@ impl<N: Neuron+ Clone+'static> Layer<N> {
                 let neuron_spike = neuron.update_v_mem(instant,intra_weights_sum, extra_weights_sum, local_adder.clone(), local_mult.clone());
                 /* Salvataggio dell'output del neurone nel vettore contenente l'output totale del layer */
                 output_spikes.push(neuron_spike);
+
+                if !at_least_one_spike && neuron_spike == 1u8 {
+                    at_least_one_spike = true;
+                }
             }
             /* Salvataggio dell'output per il prossimo istante */
             self.prev_output=output_spikes.clone();
+
+            if !at_least_one_spike {
+                continue;
+            }
+
             /* Creazione dell'Evento contenente l'output da inviare al prossimo layer */
             let output_spike = Evento::new(instant, output_spikes);
+
 
             /* Mandiamo l'output al prossimo layer */
             layer_output_tx.send(output_spike)
