@@ -67,7 +67,7 @@ fn main(){
         [-0.10, 0.0]
     ]);
 
-    let input = [[0,1,1], [0,0,1], [1,1,1]];
+    let input = [[0,1,1], [0,0,1], [1,1,1], [1,0,0], [0,0,1], [0,1,0]];
     /* SNN WITHOUT ANY ERROR */
     let mut snn_0_error = builder.clone().build::<3,2>(&Vec::new(), -1, &mut table);
     let snn_result_0_error= snn_0_error.process(&input);
